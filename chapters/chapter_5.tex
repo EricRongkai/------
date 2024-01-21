@@ -1,0 +1,215 @@
+\chapter{基于共享自治系统的主动膝关节矫形器运动参考轨迹生成}
+步态对称性训练对于偏瘫患者的康复起着至关重要的作用。基于机器人的步态训练已被患者和临床医生广泛接受。使用未受影响侧的运动数据生成受影响侧的参考轨迹是实现这一目标的重要方法。然而，在线生成步态参考轨迹需要算法提供正确的步态相位延迟，并且可以减少传感器测量噪声和用户输入不确定性的影响。基于主动膝关节矫形器（AKO）原型，这项工作提出了一种用于偏瘫患者步态康复的自适应对称步态轨迹生成框架。使用自适应非线性频率振荡器（ANFO）和运动原语，我们根据实时用户输入实现在线步态模式编码和自适应相位延迟。具有在线输入验证和仲裁功能的共享自治（SA）模块旨在防止意外运动传输到受影响侧的执行器。实验结果证明了该框架的可行性。总的来说，这项工作表明所提出的方法有潜力在非结构化环境中进行步态对称性康复，并为扭矩辅助 AKO 提供运动学参考。
+
+\section{研究动机}
+中风的特点是高发病率和高致残率。大多数中风患者都存在不同程度的步态障碍。在中风急性期，近 70 名 \% 患者存在行走障碍。即使康复并自然恢复，50 \% 偏瘫患者仍不能独立行走    \cite{jorgensenRecoveryWalkingFunction1995}    。步行能力的下降增加了患者二次伤害的风险，严重影响了他们的生活质量    \cite{balabanGaitDisturbancesPatients2014,yelnikClinicalGuideAssess1999}    。步态对称性恢复是中风患者的主要康复目标。已经进行了几项研究来分析偏瘫患者膝关节运动的时空差异。受影响一侧的膝关节在整个站立阶段    \cite{woolleyCharacteristicsGaitHemiplegia2015}    的大部分时间都显示出过度的过度伸展，这可能是一种补偿机制，可以为肢体提供稳定的负重。此外，摆动阶段膝关节屈曲的减少是最常见的偏瘫步态特征    \cite{lucareliALTERATIONLOADRESPONSEMECHANISM2006,campaniniMethodDifferentiateCauses2013}    之一。这些问题导致患者表现出骨盆的代偿性调整，并且必须对受影响的腿进行环行运动，以防止脚在地面上拖拽    \cite{cruzBiomechanicalImpairmentsGait2009} 
+
+目前，步态对称性康复很大程度上是基于物理治疗师的观察以及膝踝足矫形器   \cite{abeNarrativeReviewAlternate2021}   对患者下肢位置的直接操控。然而，传统的步态训练存在训练难度高、效果不稳定等问题，且被动康复装置无法主动实现瘫痪关节的运动。近年来，研究人员和临床医生广泛接受基于机器人的步态训练用于偏瘫患者的康复。例如，基于串联弹性执行器（SEA）的膝关节康复机器人已被用于在膝关节屈曲    \cite{sulzerHighlyBackdrivableLightweight2009,zhongGaitSymmetryEnhancement2022}    期间辅助扭矩。 Zanotto 等人使用基于内核的非线性滤波器和未受影响侧的运动数据。开发了一种主动腿部外骨骼 ALEX III，可以连续调节施加到受损腿部的力    \cite{zanottoAdaptiveAssistasneededController2014a}   。川本等人。设计了单腿版本的混合辅助肢体（HAL），在摆动阶段为受影响的肢体提供帮助，其中运动缓冲区用于存储未受影响的肢体的运动数据    \cite{kawamotoDevelopmentAssistController2014a,kawamotoModificationHemiplegicCompensatory2015}    。黄和彭等人。提出了一种基于强化学习的步行辅助控制策略。他们通过将未受影响的一侧视为领导者并将外骨骼视为跟随者来建模机器人控制系统    \cite{huangLearningbasedWalkingAssistance2018,pengDataDrivenReinforcementLearning2020}    。综上所述，大多数研究根据不同的步态阶段以预定义的扭矩曲线向患侧肢体提供扭矩辅助。研究已经验证了使用扭矩辅助方法恢复步态时间对称性的有效性。
+或者，使用未受影响侧的运动数据来生成受影响侧的关节运动是另一种方法，这可以获得更好的步态空间对称性。然而，实现这一目标仍然具有挑战性，并且很少有研究关注这一问题。这种训练系统通常要求患者处于结构化环境中，并且需要运动数据缓冲区来提供正确的步态相位延迟。简单地将运动信息映射到受影响一侧的执行器是有风险的，这可能会导致机器人出现不可预测或危险的行为。此外，人类运动的变异性和随机性已被广泛观察到    \cite{vanbeersRoleExecutionNoise2004}    。偏瘫患者运动障碍的存在进一步增加了此类康复机器人训练的不确定性。因为传感系统获得的未受影响侧的运动数据不仅包含来自传感器的测量噪声，还涉及用户本身的动作不确定性    \cite{gopinathCustomizedHandlingUnintended2021}。  
+
+我们相信，将健康受试者的政策与患者的用户驱动输入相结合可以平衡康复机器人交互的安全性和透明度。共享自治（SA）方法是最先进的方法之一。当机器人在动态变化的环境中运行时，它可以根据随时间演变的人类行为/意图无缝地适应其自主水平    \cite{selvaggioAutonomyPhysicalHumanRobot2021a}    。近十年来，SA已应用于人机交互和协作，以减少交互接口   \cite{dingHumanintheloopOptimizationHip2018}   的认知和身体工作量或纠正机器人任务可变性   \cite{hagenowCorrectiveSharedAutonomy2021}   。 SA 系统可以推断人类正在执行的动作并调节其自主性和/或提供帮助。我们的见解是，对称步态轨迹的生成可以被视为物理人机交互（pHRI）系统中的模仿学习问题。
+在 SA 系统中，这封信旨在引入自适应对称参考轨迹生成框架，通过主动膝关节矫形器 (AKO) 帮助偏瘫患者进行膝关节运动。这项工作的一个关键特点是我们不限制受试者未受影响一侧的运动，这使得 SA 模块能够提供实时的用户输入意图识别和纠正。这项工作的贡献包括：（1）基于自适应非线性频率振荡器（ANFO）和运动原语，我们根据实时步态相位将健侧的膝关节轨迹编码到低维空间中； (2)在不使用运动数据缓冲区的情况下实现了受影响侧和未受影响侧之间的自适应相位延迟； （3）我们建立了步态知识库（GKL）来提供自主策略； (4)设计了基于非线性仲裁功能的SA系统，实现用户输入的在线验证和修正； (5)通过开发的AKO原型的初步实验验证了所提出框架的可行性。
+
+\section{主动式膝关节矫形器系统结构设计}
+建议的结构依赖于编码器-解码器设计，该设计具有在线用户输入验证和仲裁机制。图1给出了其整体结构示意图。一个简化设计的 AKO 原型已经开发出来。一个执行器（由带有 1:100 谐波减速器的 Faulhaber MC5010 驱动器驱动的扁平直流无刷电机）大约与膝关节周围人体肌肉提供的等效扭矩相匹配，安装在膝关节矫形器上以辅助运动。可自由移动的尼龙带将 AKO 连接到腰部固定装置上。该框架中应用了三个惯性测量单元（IMU）（XsensDOT、Xsens Technologies）。将两个单元放置在未受影响侧的大腿和小腿上以捕获膝关节角度，并将一个单元放置在受影响侧的大腿上。每个 IMU 单元通过蓝牙将四元数数据传输到个人计算机（Intel Core i5 8500T 和 Ubuntu 20.04）。实时膝关节角度由关节角度计算器计算并通过FIR低通滤波器（截止频率：5Hz）进行滤波。为了准确地实时监控步态阶段和速度，安装在大腿上的 IMU 与 ANFO 结合以捕获髋关节的运动。步态编码器将步态周期（    $[0,2\pi ]$    ）内未受影响侧的膝关节轨迹编码为低维空间中的权重向量。 GKL是通过健康受试者和步态编码器的一些步态运动任务的离线演示而构建的。 SA 系统由两个基本组件组成。第一部分是输入验证模块，旨在防止任何落在 GKL 之外的实时用户输入传输到受影响的一方。 SA系统的第二部分是仲裁功能，用于推断用户的输入意图并将其与GKL中的策略混合。
+最后，混合命令被传输到步态解码器，生成受影响侧的膝关节参考轨迹。
+
+\section{基于共享自主系统的交互式对称步态轨迹生成}
+在本节中，我们介绍所提出框架的设计和实现。算法 1 包含已实现算法的伪代码，后续小节定义了其中提到的变量和常量。为了清楚起见，我们将    $n{\rm{ - th}}$    步态周期的用户输入定义为    ${\pmb{u}}_h^{(n)} \in {\mathbb{R}^N}$    ，将 SA 模块的输出定义为    ${\pmb{u}}_{sa}^{(n)} \in {\mathbb{R}^N}$    ，将 GKL 提供的策略定义为    ${\pmb{u}}_r^{(k)} \in {\mathbb{R}^N}$    ，其中    $k$    是 SA 模块捕获的用户输入意图。  
+
+% \begin{figure}[!t]
+%     \centering
+%     \includegraphics[width=2.6in]{figures_pdf/figures_1}
+%     \caption{所提出框架的框图。步态相位跟踪模块向步态编码器和解码器提供实时步态相位和速度信息。关节角度计算器将 IMU 的四元数数据转换为关节角度。步态编码器将未受影响侧的膝关节角度编码为实时用户输入。 SA 模块推断用户意图并在用户输入和 GKL 中的策略之间进行仲裁。步态解码器根据受影响步态的步态阶段和SA模块的混合命令实现参考轨迹生成。下肢之间的步态速度比用于调整步态解码器的时间缩放因子。  }
+%     \label{fig_1}
+% \end{figure}   
+
+% \begin{algorithm}[H]
+%     \caption{自适应膝关节对称轨迹生成  }
+%     \begin{algorithmic}[1]
+%     \REQUIRE{- real-time hip movement data         $y_{lhip}(t),y_{rhip}(t)$         \\ 
+% 		\hspace{1.5em}- real-time knee joint of unaffected sides         $y_{lknee}(t)$         \\ 
+% 		\hspace{1.5em}- gait knowledge library         $\pmb{\mu}_k$         and         $\Sigma_k$         \\ 
+% 		}
+%     \ENSURE{Reference trajectory of the actuator         $\widetilde{y}_{rknee}(t)$        } \\ 
+%     \STATE{( initialization )}
+%     \STATE{initialize ANFO with         $x_1(0),x_2(0),\omega(0),\alpha_0(0),\alpha_1(0)$        }; 
+%     \STATE{initialize GaitEncoder with          $w_i(0)=0$        }; 
+%     \STATE{initialize user input with         $\pmb{u}_h^{(0)}=\pmb{0}$        }  \\ 
+%     \FOR{        $t$        =1,2,3,...}
+%     	 \STATE{( perform gait phase tracking )} \\ 
+%         \STATE{unaffected side:         $\omega_l(t)$        ,         $\phi_l(t)$        =ANFO(        $y_{lhip}(t)$        )};  \\ 
+%         \STATE{affected side:         $\omega_r(t)$        ,         $\phi_r(t)$        =ANFO(        $y_{rhip}(t)$        )};  \\ 
+%     \STATE{( encode knee joint trajectory of unaffected side )} \\ 
+%     \IF{end of the gait cycle}
+%         \STATE{GaitEncoder(        $\phi_l(t),y_{lknee}(t)$        )} \\ 
+%     \ELSE
+%         \STATE{update n-th user input:         $\pmb{u}_h^{(n)}$         and reset GaitEncoder} \\ 
+%     \ENDIF
+%     \STATE{( perform shared autonomy )} \\ 
+%     \IF{        $\omega_r(t)>Tr_\omega$         and         $\omega_l(t)>Tr_\omega$        }
+%     	\IF{user input is updated}
+%             \STATE{        $k=argmin(\Delta_k(\pmb{u}_h^{(n)}))$        } \\ 
+%             \STATE{        $\pmb{u}_h^{(n)}$        =InputValidation(        $Tr_k, \Delta_k(\pmb{u}_h^{(n)}))$        } \\ 
+%             \STATE{        $ \pmb{u}_{sa}^{(n)} = \beta_{\theta}(\pmb{u}_r^{(k)}, \pmb{u}_h^{(n)})$        } \\ 
+%        \ENDIF
+%      \ELSE
+% 	  \STATE{        $\beta_{\theta}(\pmb{u}_r^{(k)}, \pmb{u}_h^{(n)})=\pmb{0}$        } \\ 
+%        \ENDIF
+%     \STATE{( decode blending input for affected side )} \\ 
+%     \IF{end of the gait cycle}
+%         \STATE{update parameters of GaitDecoder by         $\pmb{u}_{sa}^{(n)}$         and          $\Omega^{(n)}$        } \\ 
+%     \ELSE
+% 	 \STATE{        $\widetilde{y}_{rknee}(t)$        =GaitDecoder(        $\Delta t$        ;         $\phi_r(t),\Omega^{(n)},\pmb{u}_{sa}^{(k)}$        )} \\ 
+%     \ENDIF
+%     \ENDFOR
+%     \label{alg1}
+% \end{algorithmic}
+% \end{algorithm}     
+
+\subsection{节律型动态运动基元} 适当的人类行为表示形式是 SA 系统的基础，其中包括如何对行为建模以及如何执行验证和纠正。通过模仿学习    \cite{schaalImitationLearningRoute1999}    将膝关节角度的时间序列编码到低维子空间中，使我们能够对其进行适当的调制。虽然各种形式的轨迹编码方法可用于用户行为表示（例如，隐马尔可夫模型、概率运动原语、高斯混合模型、高斯过程）。在这项工作中，我们利用动态运动原语 (pDMP)    \cite{ijspeertDynamicalMovementPrimitives2013,gamsOnlineLearningModulation2009}    的周期性变体，通过在线单个演示进行训练来对膝关节运动进行建模。 pDMP 由弹簧阻尼模型和强制项组成，确保在再现所学技能时轨迹平滑收敛到目标位置。下面简要回顾一下 1-DOF pDMP
+    \begin{equation}
+  \label{deqn_ex8}
+  \begin{gathered}
+  \dot z = \Omega \left( {{\alpha _z}\left( {{\beta _z}( - y) - z} \right) + f(\phi (t),\pmb{w})r} \right) \hfill  \\ 
+  \dot y = \Omega z \hfill  \\  
+  \end{gathered} 
+\end{equation}   ，其中    $z$    是潜在变量，   $y$    是我们想要使用 pDMP 进行编码的所需周期轨迹。 pDMP 的常数值设置是经验性的，   $\Omega $    是时间尺度项，   ${\alpha _z} = 10$    、    ${\beta _z} = 2.5$    是正常数，   $r = 50$    是幅度控制参数。力项    $f(\phi (t),\pmb{w})$    定义为    $N$    类高斯核函数    ${\psi _i}$    与局部线性模型    ${w_{1,2,...,N}}$    的组合。
+    \begin{equation}
+  \label{deqn_ex9}
+  f(\phi (t),\pmb{w}) = {{\left( {\sum\nolimits_{i = 1}^N {{\psi _i}{w_i}} } \right)} \mathord{\left/
+ {\vphantom {{\left( {\sum\nolimits_{i = 1}^N {{\psi _i}{w_i}} } \right)} {\sum\nolimits_{i = 1}^N {{\psi _i}} }}} \right.
+ \kern-\nulldelimiterspace} {\sum\nolimits_{i = 1}^N {{\psi _i}} }}
+\end{equation}   
+    \begin{equation}
+  \label{deqn_ex10}
+  {\psi _i} = \exp (h(\cos (\phi (t) - {c_i}) - 1))
+\end{equation}    其中    $h = 25$    是类高斯核函数的宽度，每个核的中心    ${c_i}$    与    $N = 20$    均匀分布在 0 和    $2\pi $    之间。
+    \subsection{步态编码器  }    步态编码器利用未受影响侧的实时步态相位对每个分段步态周期进行编码。然而，如果允许时间尺度项动态变化，优化过程可能会变得不稳定。在这个实现中，我们固定了编码器的   $\Omega  = 1$   ，通过重写pDMP我们可以获得学习目标   ${f_{targ}}(t)$   为
+   \begin{equation}
+  \label{deqn_ex11}
+  {f_{targ}}(t) = {\ddot y_{knee}}(t) - {\alpha _z}({\beta _z}( - {y_{knee}}(t)) - {\dot y_{knee}}(t))
+\end{equation}    其中    ${\dot y_{knee}}(t)$    、    ${\ddot y_{knee}}(t)$    是健侧膝关节角度轨迹    ${y_{knee}}(t)$    的一阶和二阶导数。成本函数    ${J_i}$    定义为
+    \begin{equation}
+  \label{deqn_ex12}
+  \begin{array}{*{20}{c}}
+    {{J_i} = \sum\limits_{t = 1}^P {{\psi _i}} (t){{\left( {{f_{targ}}(t) - {w_i}r} \right)}^2}}&{,i = 1,2,...,N} 
+  \end{array}
+\end{equation}       ${J_i}$    的最小化可以通过递归最小二乘法（RLS）[24]来执行，以增量学习局部线性模型的权重向量    $\pmb{w}(t) = ({w_1}(t),{w_2}(t),...,{w_N}(t))$   。当在时间    $t$    捕获相位突变点时，用户输入定义为    $\pmb{u}_r^{(n)} = \pmb{w}(t)$    。令    $\pmb{u}_r^{(n)} = (w_1^{(n)},w_2^{(n)},...,w_N^{(n)})$    为    $n{\text{ - th}}$    步态周期的用户输入，   $\pmb{u}_r^{(n + 1)} = (w_1^{(n + 1)},w_2^{(n + 1)},...,w_N^{(n + 1)})$    为下一个用户输入。由于膝关节的轨迹在分割点（其中    $w_N^{(n)}\approx w_1^{(n+1)}$    ）之前和之后保持一致的模式，因此可以利用它来实现每个连续用户输入之间的无缝过渡。一旦发生步态周期分段事件，用户输入就会发送到 SA 系统，矢量    $\pmb{w}(t)$    随后重置为其初始状态。  
+
+   \subsection{步态知识库  }    GKL 是通过健康受试者和步态编码器的离线演示构建的。我们假设具有相同模式    $k$    的步态周期的权重向量是独立的并且服从多维高斯分布，并且 GKL 中的策略可以定义为    $\pmb{u}_r^{(k)}\sim {\mathcal{N}}\pmb{(}{{\pmb{\mu }}_k},{\Sigma _k}\pmb{)}$    。期望   ${{\pmb{\mu }}_k} \in {\mathbb{R}^N}$   和协方差矩阵   ${\Sigma _k} \in {\mathbb{R}^{N \times N}}$   可以通过最大似然估计来计算。  
+
+   \subsection{输入验证  }    由于用户输入的不确定性和可变性，有必要对其进行验证和过滤。幸运的是，当轨迹拓扑相似时，它们在 pDMP 中的权重向量也相似    \cite{ijspeertDynamicalMovementPrimitives2013}    。这使我们能够将输入验证视为检测奇点的问题。我们在该模块中应用了基于距离度量的奇点检测方法。与其他方法相比，它具有更简单的形式和更低的计算量，定义为
+    \begin{equation}
+  \label{deqn_ex13}
+  {\Delta _k}({\pmb{u}}_h^{(n)}) = \sqrt {{{({\pmb{u}}_h^{(n)} - {{\pmb{\mu }}_k})}^T}\Sigma _k^ - ({\pmb{u}}_h^{(n)} - {{\pmb{\mu }}_k})} 
+\end{equation}   
+    \begin{equation}
+  \label{deqn_ex14}
+  k = \arg \min \left( {{\Delta _k}({\pmb{u}}_h^{(n)})} \right)
+\end{equation}   ，其中    ${\Delta _k}(\pmb{u}_h^{(n)})$    是用户输入    ${\pmb{u}}_h^{(n)}$    与 GKL 中策略之间的马哈拉诺比斯距离。它与尺度无关，并考虑各种属性之间的联系。下标   $k$   表示用户打算执行的步态模式，由最小距离准则确定。但是，由于 pDMP 的结构，第一项始终等于局部线性模型    ${w_1}(t) = {w_N}(t)$    的最后一项。这导致    ${\Sigma _k}$    中存在线性相关行，因此无法直接计算逆矩阵。在(    \ref{deqn_ex13}    )中，   $\Sigma _k^ - $   是广义逆矩阵，它将分布退化到较低维子空间，但不影响距离测量。当    ${\Delta _k}(\pmb{u}_h^{(n)}) > T{r_k}$    时检测到奇异输入。  
+
+   \subsection{仲裁功能  }    仲裁功能是SA系统的核心组件，并根据用户输入意图的置信度进行在线微调。通过在GKL中线性组合用户输入和策略，减少动态变化环境中输入不确定性的影响，保证康复机器人运动规划的安全性。 SA 模块由具有时变混合系数的仲裁函数参数化，以在用户输入和 GKL 提供的策略之间进行仲裁。混合命令    ${\pmb{u}}_{sa}^{(n)} = {\beta _\theta }({\pmb{u}}_r^{(k)},{\pmb{u}}_h^{(n)})$    可以通过
+    \begin{equation}
+  \label{deqn_ex15}
+  {\beta _\theta } \triangleq \left \{  {\begin{array}{*{20}{c}}
+    {\pmb{\alpha }_\theta ^{(n)}{\pmb{u}}_h^{(n)} + \left( {1 - {\boldsymbol{\alpha }}_\theta ^{(n)}} \right){\pmb{u}}_r^{(k)}}&{{\text{, gait speed }}\pmb{ >  }T{r_\omega }}  \\  
+    \pmb{0}&{{\text{, gait speed }}\pmb{ <  }T{r_\omega }} 
+  \end{array}} \right.
+\end{equation}    其中系数    ${\pmb{\alpha }}_\theta ^{(n)} = [\alpha _1^{(n)},\alpha _2^{(n)},...,\alpha _N^{(n)}]$    、    $\alpha _{1,2,...,N}^{(n)} \in [0,1]$    通过在 GKL 中的用户输入和策略之间分配控制权限来在线调整。当   $\alpha _{1,2,...,N}^{(n)} = 0$   表示AKO的参考轨迹完全依赖于GKL中的策略时。相反，当    $\alpha _{1,2,...,N}^{(n)} = 1$    时，参考轨迹完全基于用户输入。与输入验证模块不同，仲裁功能主要纠正用户输入   ${\pmb{u}}_h^{(n)}$   中严重偏离GKL策略的元素。系数    ${\pmb{\alpha }}_\theta ^{(n)}$    代表系统对用户的信心，由非线性函数计算得出：
+    \begin{equation}
+  \label{deqn_ex16}
+  {\pmb{\alpha }}_\theta ^{(n)} \triangleq {\text{exp}}\left( {{\text{ - }}{{{\pmb{d}^{(n)}}} \mathord{\left/
+ {\vphantom {{{\pmb{d}^{(n)}}} \theta }} \right.
+ \kern-\nulldelimiterspace} \theta }} \right)
+\end{equation}   
+    \begin{equation}
+  \label{deqn_ex17}
+  {\pmb{d}^{(n)}} = {\left[ {diag({{\Sigma _k}})} \right]^{ - 1}} \cdot \left( {\pmb{u}_h^{(n)} - {\pmb{\mu }_k}} \right) \odot \left( {\pmb{u}_h^{(n)} - {\pmb{\mu }_k}} \right)
+\end{equation}   ，其中    ${\pmb{d}^{(n)}} \in {\mathbb{R}^N}$    是通过将用户输入与 GKL 中的策略进行比较而获得的标准化距离。超参数    $\theta  > 0$    用于调整人机信任级别，可以根据经验设置或通过基于在线人机循环的算法动态优化。当    $\theta  \to \infty $    时，仲裁函数对用户输入变得更加敏感（允许用户输入与 GKL 中的策略之间存在更大的偏移），当    $\theta  \to 0$    时，混合命令    ${\pmb{u}}_{sa}^{(n)}$    将受 GKL 中预定义策略的支配。  
+
+除了使 ANFO 能够收敛到极限环的稳定周期性步态模式外，还有两种需要单独处理的非周期性过渡状态。 “开始”：从初始状态（各关节角度为零）进入稳定的周期性步态； “停止”：从稳定的周期性步态回到初始状态。 “Start”由引导操作    ${\pmb{u}^{(start)}} = ({u}_1^{(start)},{u}_2^{(start)},...,{u}_N^{(start)})$    处理，当用户输入首次通过输入验证模块时，该操作用于将轨迹目标从初始状态平滑地过渡到周期性步态模式。
+    \begin{equation}
+  \label{deqn_ex18}
+  \begin{array}{*{20}{c}}
+    {{u}_i^{(start)} \triangleq \frac{N}{{N - 1}}\left( {1 - \frac{{w_N^{(start)} - 1}}{{i - N-1}} + \frac{{w_N^{(start)}}}{N}} \right)} 
+  \end{array}
+\end{equation}   ，其中    $w_N^{(start)}$    是第一个有效用户输入中的最后一项。当未受影响或受影响一侧的步态速度低于某个阈值    $T{r_\omega }$    时，将激活“停止”状态。这表明用户打算停止训练。  
+
+   \subsection{步态解码器  }    步态解码器可以被认为是一个时变线性系统，通过 pDMP 的欧拉离散化进行离散化。由于未受影响侧和受影响侧的ANFO是独立的，因此可以直接生成自适应步态相位延迟，而不需要保存运动数据。步态解码器和生成的参考轨迹    ${{\tilde y}_{rknee}}(t)$    定义为
+    \begin{equation}
+  \label{deqn_ex19}
+  \pmb{s}(t) = {{\boldsymbol{A}}^{(n)}}\pmb{s}(t - 1) + {\boldsymbol{B}}\pmb{u}(t)
+\end{equation}   
+    \begin{equation}
+  \label{deqn_ex20}
+  {{\tilde y}_{rknee}}(t) = {\boldsymbol{C}}\pmb{s}(t)
+\end{equation}    其中    $\pmb{s}(t)={\left[ {z(t),y(t)} \right]^T}$    和    ${\pmb{u}}(t)=r \cdot f({\phi _r}(t),{\pmb{u}}_{sa}^{(n)})$    ，矩阵    ${\boldsymbol{B}={\left[ {\begin{array}{*{20}{c}}1&0 \end{array}} \right]^T}}$    和    ${\boldsymbol{C}=\left[{\begin{array}{*{20}{c}}0&1 \end{array}} \right]}$    。时变转移矩阵    ${{\boldsymbol{A}}^{(n)}}$    定义为  
+
+   \[{{\boldsymbol{A}}^{(n)}} = \left[ {\begin{array}{*{20}{c}}
+  { - {\Omega ^{(n)}}{\alpha _z}\Delta t}&{ - {\Omega ^{(n)}}{\alpha _z}{\beta _z}\Delta t}  \\  
+  {{\Omega ^{(n)}}\Delta t}&0 
+\end{array}} \right]\]    其中    $\Delta t$    是积分时间步长，    ${\Omega ^{(n)}} = {{\omega _r^{(n)}} \mathord{\left/
+{\vphantom {{\omega _r^{(n)}} {\omega _l^{(n)}}}} \right.
+\kern-\nulldelimiterspace} {\omega _l^{(n)}}}$ 。
+
+
+\section{实验与分析  }    本节使用 IMU 的运动捕捉数据在各种人机信任超参数设置和多任务场景下评估所提出的框架的性能。此外，还使用开发的 AKO 原型测试了现实场景中辅助行走框架的有效性。 9名健康受试者（年龄：   $26\pm 4$   ；性别：男；身高：   $175\pm 14$    cm；体重：   $66\pm13$    kg）参与本研究并签署知情同意书。在每次实验    \cite{tongLSTMBasedLowerLimbs2020}    之前，将 IMU 单元及其附属肢体之间的姿态关系校准到初始状态。两名受试者的数据用于构建 GKL，七名受试者的数据用于测试。  
+
+图 2 显示了开发的 AKO 原型及其控制策略。采用具有前馈重力补偿的PD控制器来控制执行器跟踪生成的轨迹。相关研究    \cite{zanottoAdaptiveAssistasneededController2014a}    表明，施加在下肢的大于 2 kg 的负载可以显着改变步态运动学，以模拟偏瘫步态。为了评估所提出的框架在辅助步行方面的功效，将一个 3 公斤重的沙袋放置在健康参与者的右脚踝处，以复制偏瘫患者患侧的步态特征。脚趾上放置了两个额外的 IMU 单元，以根据预定义的规则区分步态摆动阶段和站立阶段。
+
+% \begin{figure}[!t]
+%     \centering
+%     \includegraphics[width=2.6in]{figures_pdf/figures_2}
+%     \caption{开发的AKO原型机及其用于辅助步行实验的控制策略。  }
+%     \label{fig_2}
+% \end{figure}     
+
+\subsection{措施与分析  }    步态时间对称性常用的量化方法是罗宾逊指数    \cite{viteckovaGaitSymmetryMeasures2018}    ，也称为对称指数（SI）。计算公式为
+\begin{equation}
+\label{deqn_ex21}
+{SI}{\text{ = }}\left[ {{{2 \cdot \left( {{X_l} - {X_r}} \right)} \mathord{\left/
+{\vphantom {{2 \cdot \left( {{X_l} - {X_r}} \right)} {\left( {{X_l} + {X_r}} \right)}}} \right.
+\kern-\nulldelimiterspace} {\left( {{X_l} + {X_r}} \right)}}} \right] \times 100 \%  
+\end{equation}    其中    ${X_{\text{l}}}$    和    ${X_r}$    是未受影响侧和受影响侧的站立阶段的持续时间。    $SI$    越接近零，步态时间对称性越好。此外，我们使用时间序列    ${y_l(t)}$    和    ${y_r(t)}$    之间的相关系数 (CC)    \cite{gouwandaIdentifyingGaitAsymmetry2011}    来评估关节运动学的空间对称性
+\begin{equation}
+\label{deqn_ex22}
+CC = {{\sum\limits_{i = 1}^T {\left( {{y_l}(i - \tau) - {{\bar y}_l}} \right)} \left( {{y_r}(i ) - {{\bar y}_r}} \right)} \mathord{\left/
+{\vphantom {{\sum\limits_{i = 1}^T {\left( {{y_l}(i) - {{\bar y}_l}} \right)}\left( {{y_r}(i + \tau ) - {{\bar y}_r}} \right)} {{\sigma _l}{\sigma _r}}}} \right.
+\kern-\nulldelimiterspace} {{\sigma _l}{\sigma _r}}}
+\end{equation}   ，其中    $\tau $    是两个系列之间的相位延迟，可以由 ANFO 生成，   ${\sigma _l}$    和    ${\sigma _r}$    是方差，   $\bar y_l$    和    $\bar y_r$    是    ${T}$    时间步内的平均值。虽然仅使用这两个指标无法提供对 pHCI 系统的完整评估（因为它们无法描述与用户相关的指标，如舒适度、独立性或满意度），但它们仍然可以在一定程度上定量评估我们提出的方法。  
+
+\subsection{GKL的成立  }    GKL 是根据两名健康受试者的动作捕捉数据建立的。受试者被要求完成两项任务（“行走”：在跑步机上以 0.5km/h 的稳定速度行走 3 分钟；“上楼梯”：以舒适的速度爬上 4m 高的楼梯并重复五次）。步态编码器将采集到的运动数据编码为权重向量，人工剔除异常数据。最终，分别获得了 136 个有效的“行走”步态周期和 115 个“上楼梯”步态周期。图3（a）和图3（b）显示了两种步态模式下GKL的分布。对 GKL 的分量进行 Shapiro-Wilk (SW) 正态性检验，结果表明它们与高斯分布 (    $p<0.05$    ) 没有显着差异，符合假设。  
+
+\begin{table}[!t]
+    \centering
+    \caption{不同    $\theta $    设置下的空间对称性    \label{tab:table1}     }
+    \begin{tabular}{cccccc}
+    \toprule
+            $\theta $         & 5 & 10 & 20 & 30 & 50  \\ 
+    \midrule
+            ${CC}({y_{lknee}},{\tilde y_{rknee}})$         & 0.86	&0.89	&0.93	&0.95	&0.97  \\ 
+            ${CC}({y_{rknee}},{\tilde y_{rknee}})$         & 0.98 &0.97	&0.94	&0.92	&0.89  \\ 
+    \bottomrule
+    \end{tabular}
+\end{table}   
+
+\subsection{使用不同    $\theta $    设置的轨迹生成  }    通过使用一名健康受试者在“行走”任务（不佩戴 AKO 和负载）下两侧的运动数据，我们演示了不同    $\theta $    设置下框架的属性。为了表述清楚起见，此处保留术语“受影响的一侧”和“未受影响的一侧”。我们将生成的轨迹与未受影响侧的用户输入以及受影响侧的地面真实膝关节轨迹进行了比较。图 3(c) 显示了当 GKL 中用户输入和策略之间的距离增加时，在不同    $\theta $    设置下，系数    $\pmb{\alpha }_\theta ^{(n)}$    从 5 变化到 50。图 3(d) 描绘了“行走”任务中的两个不同的步态周期。第一个代表正常的用户输入，而第二个则展示嘈杂的输入。所有五个    $\theta $    设置在第一个步态周期中都显示出具有良好空间对称性 (    $CC<0.95$    ) 的近似性能。相反，由于用户输入和 GKL 中的策略之间的偏差很大，SA 系统在第二个步态周期中给出了校正输出。
+实验结果如表    \uppercase       \expandafter{\romannumeral1}    所示，其中    ${CC}({y_{lknee}},{\tilde y_{rknee}})$    由健侧和患侧膝关节数据计算得出，   ${CC}({y_{rknee}},{\tilde y_{rknee}})$    由患侧数据和真实数据计算得出。随着   $\theta $   的增加，它们呈现出相反的趋势，这是由于SA系统在相同条件下更加信任用户输入造成的。然而，一些研究表明，一定程度的步态不对称可能是对与中风相关的神经缺陷的积极适应    \cite{balabanGaitDisturbancesPatients2014}    。为了优化    $\theta $    可能需要进一步涉及接触力或耗氧量信息。我们并不以高相关性作为这项工作的最终目标，其中    $\theta $    设置为经验值。作为权衡选择，我们在后面的实验中修复了    $\theta  = 20$。
+
+% \begin{figure*}[!t]
+%     \centering
+%     \subfloat{\includegraphics[width=6.9in]{figures_pdf/figures_3}
+%     \label{fig_3}}
+%     \caption{(a)“步行”任务的 GKL 中每个组件的分布 (b)“上楼梯”任务的 GKL 中每个组件的分布。 (c) 当 GKL 中用户输入和策略之间的距离增加时，不同人机信任调整因子    $\theta $    设置的混合系数    $\pmb{\alpha }_\theta ^{(n)}$   。 (d) 在不同    $\theta $    设置的嘈杂用户输入下生成的轨迹，   ${y_{lknee}}(t - \tau )$    是未受影响侧移动    $\tau $    的关节角度，   ${y_{rknee}}(t)$    是受影响侧的地面真实关节角度。 (e) 结合“行走”和“上楼梯”任务生成的轨迹曲线，   ${\hat y_{lhip}}(t)$    和    ${\hat y_{rhip}}(t)$    是具有移动平均去趋势和 FIR 低通滤波的实时髋关节角度。 (f) 七名受试者的 AKO 步行实验的对称性度量，误差线通过标准差计算，“*”代表 p    \textless    0.05，“**”代表 p    \textless    0.01。  }
+%   \end{figure*}  
+
+\subsection{使用不同    $\theta $    设置的轨迹生成  }    我们通过跨多个任务的一组连续运动（包括行走、停止和上楼梯）来测试框架的整体性能。这些动作由七名受试者执行，其中一名受试者的数据如图 3(e) 所示。结果表明，该框架需要实验中测得的约    $4\pm 1$    个步态周期（平均 8.6 秒）的适应周期（蓝色区域）。在此期间，SA模块无法确定用户意图   ${k}$   ，因为距离   ${\Delta _k}(\pmb{u}_h^{(n)})$   大于阈值   $T{r_k}$   。这个问题可以归因于 ANFO 的收敛是一个耗时的过程，这反过来又会导致错误的步态周期分割。
+通常，增加   $\varepsilon $   和   $\gamma $   可以加快ANFO的收敛速度，但也可能使ANFO容易受到干扰。当捕获用户输入意图    ${k}$    时，引导动作    ${\pmb{u}^{(start)}}$   （绿色区域）将轨迹平滑地引导为周期性步态运动。步行任务（橙色区域）中出现了一种未通过输入验证模块的严重扭曲的用户输入。由于此时双方步态速度均高于阈值   $T{r_\omega }$   ，因此SA模块会阻止用户输入更新，以保证轨迹生成的安全性。当步态速度低于阈值   $T{r_\omega }$   （红色区域）时，参考轨迹被迫收敛到初始状态以停止训练。在从“停止”状态转换到下一个任务之前，系统必须返回到“适应”状态以捕获用户的下一个输入意图。任务切换已在所有测试对象中有效实施。然而，如果任务空间很大，用于识别用户输入意图的基于距离的方法可能不再可行。在这种情况下，未来需要探索替代的机器学习方法。
+
+\subsection{AKO辅助步行实验  }    进行了初步实验，以测试所提出的框架应用于 AKO 时的性能。招募了七名受试者并要求他们完成四项不同的任务，每项任务重复三次。 （“正常”：不带 AKO 和沙袋行走；“受影响”：右脚踝上带着 3 公斤沙袋行走；“协助”：右脚踝上同时带着 3 公斤沙袋和 AKO 行走； “大腿负重”：右大腿背着3公斤重的沙袋，在跑步机上以0.5公里/小时的稳定速度行走2分钟内。任务“ThighLoad”测试 AKO 的体重（约 2.76 公斤）对步态对称性的影响。图3(f)显示了实验结果，并应用单向方差分析进行统计分析。  
+
+正常步态在时间和空间上往往是对称的，在    ${SI < 6 \%  }$    和    ${CC} \approx {1}$       \cite{balabanGaitDisturbancesPatients2014}    处测量的下肢之间存在一般差异。脚踝上的额外负荷显着影响所有受试者的时间和空间对称性 (    $p<0.01$    )，其中时间对称性达到平均    ${SI} = 12.83 \%  $    ，空间对称性下降到平均    ${CC} = 0.79$    。在AKO的帮助下，所有受试者的步态对称性都得到了一定程度的改善。
+“受影响”和“协助”之间的时间对称性平均提高了约 57 \% 至    ${SI} = 5.35 \%  $   ，空间对称性平均提高了约 17 \% 至    ${CC} = 0.94$   。在所有受试者中，“协助”的空间对称性虽然比“受影响”有所改善，但与“正常”(    $p<0.01$    ) 相比仍然显示出显着的变异性，这可能是由于 AKO 的额外权重所致。至于“Assist”的空间对称性，只有 P1 和 P2 与“Normal”（   $p<0.05$   ）相比仍然表现出显着差异。大腿上的沙袋负荷对受试者的时间对称性产生显着影响。与“正常”(    $p<0.01$    ) 相比，它平均增加到    ${SI} = 3.22 \%  $   ，但没有显着改变空间对称性。然而，“ThighLoad”和“Assist”之间仍然存在显着差异（   $p<0.01$   ）。因此，AKO 的权重可能不是时间对称性恢复不完全的唯一原因。另一个原因可能是目前开发的AKO由于仅使用位置控制而透明度较低。然而，由于用于计算对称性的方程和 AKO 的设计存在差异，对称性值仍然难以在不同研究中进行完全比较。提供扭矩辅助的 AKO 在恢复步态时间对称性方面表现出与我们建议的方法相当的性能。然而，其中大多数没有考虑下肢双侧关节运动角度的均匀性。
+ 此外，由于采用SEA和电缆驱动结构，扭矩辅助AKO只能控制执行器输出力，从而增强了透明度。未来，进一步改进控制策略以实现混合力-位置控制并减轻AKO的重量对于我们工作的推进至关重要。
+   \section{结论  }    这项工作介绍了一种创新的对称轨迹生成方法，用于偏瘫患者基于 AKO 的步态康复。该框架将 pDMP 与 ANFO 相结合，以促进在线步态周期编码和解码，同时调整受影响侧和未受影响侧之间的步态相位延迟。此外，采用具有 GKL 的 SA 模块来自适应地分析和仲裁来自不受影响侧的实时用户输入，从而最大限度地减少输入不确定性的影响。我们认为，所提出的方法有望在非结构化或半结构化场景中实现步态对称性康复，并为关节扭矩辅助 AKO 提供运动学参考。尽管通过各种实验证明了该方法的有效性，但仍需要承认某些局限性。例如，所提出的系统可能无法使用户完全恢复步态对称性，并且可能不适合下肢严重损伤的患者。未来，我们将在以下方面开展工作：（1）让偏瘫患者参与实验，收集更多的运动数据来构建GKL； (2) 在框架中引入力触觉传感器，并构建超参数    $\theta $    的人机交互优化算法。  

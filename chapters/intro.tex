@@ -78,7 +78,7 @@ Jun和Kim等人\cite{hong-guljunWalkingSittostandSupport2011,inhokimKinematicAna
   \centering
   \caption{康复辅助机器人中常用的人机交互感知技术手段}
   \label{tab:Sensors}
-  \begin{tabular}{cp{2.5cm}p{2.5cm}p{2.5cm}p{2.5cm}}
+  \begin{tabular}{cp{2.5cm}p{2.7cm}p{2.4cm}p{2.4cm}}
     \toprule
     \textbf{类型} & \textbf{感知方式} & \textbf{优势} & \textbf{缺点} & \textbf{主要应用领域}  \\
     \midrule
@@ -128,50 +128,25 @@ Jun和Kim等人\cite{hong-guljunWalkingSittostandSupport2011,inhokimKinematicAna
 
 基于多模态的交互感知技术包括对语音、图像、文字、眼动、触觉以及脑电图、心电图等各类型的感知信号的综合使用\cite{suRecentAdvancementsMultimodal2023}。在数据处理上需要结合多种类型的感知手段，以协调的方式获取和处理两个或多个组合的输入信息。例如采用视觉与惯性传感器相结合的方式解决运动捕捉中视觉遮挡问题\cite{mallesonRealTimeFullBodyMotion2017,moniruzzamanWearableMotionCapture2023}，提高系统鲁棒性。Riggozlio等人\cite{rizzoglioHybridBodyMachineInterface2020}结合EMG肌肉电信号和IMU运动信号设计了一种多模态身体-机器接口（BoMI），并评估了其在不同融合策略下的性能。近年来，随着大语言模型技术的不断发展，也有研究尝试通过整合计算机视觉、自然语言处理、认知架构和社会信号处理等工具，来提高人-机器人的交互质量和感知的智能水平\cite{dongHuBoVLMUnifiedVisionLanguage2023,huangVoxPoserComposable3D2023,gaoPhysicallyGroundedVisionLanguage2023}。然而，多模态交互在一定程度上增加了人机交互的复杂度，用户需要理解和选择适合当前情境的交互方式，并适当地与机器人进行交互。此外，在技术层面，多模态交互涉及到不同类型的数据融合，将这些不同类型的数据融合在一起是一个关键性挑战，需要在研究中进一步解决数据一致性、数据关联和数据整合等问题。
 
-\section{研究现状总结}
+\section{研究发展动态分析}
 从机器人实现的功能角度来看，针对于不同的应用场景各类研究存在着差异化的结构设计以及功能实现方式。与工作在固定场景中的工业机器人等传统机器人相比，作为一种服务机器人，康复辅助机器人的一个共同的特点是需要在存在高度不确定性的非结构化环境中工作，且需要与人类进行更加丰富地交互。
 
-随着传感器、驱动器以及相关智能算法研究的不断发展，康复辅助设备已经由传统的自动化设备逐渐向具有一定自主性的智能机器人发展。因此，不仅仅需要在功能性上满足使用者的需求，现阶段的康复辅助机器人的智能化研究发展进一步围绕``以人为中心''展开，因此需要与传统机器人完全不同的性能评价要求，这包括了从安全性、遵从性、舒适度、适应性、功能和灵活性等多方面的综合考虑\cite{heSurveyHumancenteredIntelligent2017b}。例如使用人在环中优化方法\cite{dingHumanintheloopOptimizationHip2018,zhangHumanintheloopOptimizationExoskeleton2017a,awadSoftRoboticExosuit2017}通过采集人类代谢能量消耗等指标动态调整机器人辅助策略以提高对不同使用者的适应性，通过在电动轮椅上安装激光雷达以及超声波传感器进行自动避障提高移动安全性\cite{fosterReflectanceFieldMap2023,parkDiscretetimeDynamicModeling2017,walterFrameworkLearningSemantic2014}，在机器人设计中引入力传感器设计柔顺控制器\cite{hong-guljunWalkingSittostandSupport2011,inhokimKinematicAnalysisSittostand2011}以及设计SEA等新型柔性驱动结构\cite{zhongGaitSymmetryEnhancement2022}等方法降低辅助机器人系统刚性。以人为中心的HRI研究通常围绕用户来研究机器人的设计或可用性等主题，而以机器人为中心的HRI研究则研究算法和工程创新，以提高机器人的整体性能。
+随着传感器、驱动器以及相关智能算法研究的不断发展，康复辅助设备已经由传统的自动化设备逐渐向具有自主性的智能机器人发展。现阶段的辅助机器人智能化研究从``以机器为中心''逐渐向``以人为中心''过度，不仅仅需要在功能性上满足使用者的需求，更需要与传统机器人完全不同的性能评价要求，其包括了从安全性、遵从性、舒适度、适应性、功能和灵活性等多方面的综合考虑\cite{heSurveyHumancenteredIntelligent2017b}。例如使用人在环中优化方法\cite{dingHumanintheloopOptimizationHip2018,zhangHumanintheloopOptimizationExoskeleton2017a,awadSoftRoboticExosuit2017}通过采集人类代谢能量消耗等指标动态调整机器人辅助策略以提高对不同使用者的适应性，通过在电动轮椅上安装激光雷达以及超声波传感器进行自动避障提高移动安全性\cite{fosterReflectanceFieldMap2023,parkDiscretetimeDynamicModeling2017,walterFrameworkLearningSemantic2014}，在机器人设计中引入力传感器设计柔顺控制器\cite{hong-guljunWalkingSittostandSupport2011,inhokimKinematicAnalysisSittostand2011}以及设计SEA等新型柔性驱动结构\cite{zhongGaitSymmetryEnhancement2022}等方法降低辅助机器人系统刚性。以人为中心的HRI研究通常围绕用户来研究机器人的设计或可用性等主题，而以机器人为中心的HRI则研究算法和工程创新，以提高机器人的工作性能指标。尽管现有的大量研究成果从不同的角度对辅助机器人的性能指标进行了分析和优化，综合来看，人类安全是目前康复辅助机器人HRI设计的最大的问题之一\cite{tadeleSafetyDomesticRobotics2014}。作为机器人可靠性的重要指标，安全是未来发展通用形辅助机器人所必须保证的基本问题。通常可以使用两种不同的方法来解决HRI中的安全问题：（1）通过设计改进硬件本身或降低机器人自主性使用低水平控制策略来提高机器人的内在安全水平，这样即使发生碰撞，对人体的影响也能最小化\cite{haddadinNewInsightsConcerning2010}；（2）通过设计机器人的决策规划算法让机器人的行为安全，这也被称为``交互安全''\cite{liuDesigningRobotBehavior}。
 
-大量的成果从不同的角度对辅助机器人的性能指标进行了研究和优化，综合来看，人类安全是康复辅助机器人HRI设计的最大的问题之一\cite{tadeleSafetyDomesticRobotics2014}。作为机器人可靠性的重要属性，安全是未来发展通用形辅助机器人所必须保证的基本问题之一。其中，可以使用两种不同的方法来解决HRI中的安全问题。一种方法是通过设计改进硬件本身或降低机器人自主性使用低水平控制策略来提高机器人的内在安全水平，这样即使发生碰撞，对人体的影响也能最小化\cite{haddadinNewInsightsConcerning2010}。另一种方法是通过设计机器人的决策规划算法让机器人的行为安全，这也被称为``交互安全''\cite{liuDesigningRobotBehavior}。由于人-机器人交互系统是高度复杂的，考虑到著名的墨菲定律：``任何可能出错的事情最终都会出错''，因此在一个涉及一定风险的人-机器人交互系统中，需要充分考虑到感知、决策规划、控制执行等各个层面的不确定因素。
+由于人-机器人交互系统是一个刚体-柔性体-软体耦合的高度复杂系统，考虑到著名的墨菲定律：``任何可能出错的事情最终都会出错''，因此在一个涉及一定风险的人-机器人交互系统中，需要充分考虑到感知、决策规划、控制执行等各个层面的不确定因素。
 
-在针对机器人感知的相关研究中，大多围绕使用更多的传感器、开发和设计更复杂的模型以实现更高精度的状态估计或意图识别。此外，由于不同模态的数据输入显著增加了系统的复杂度，无模型的数据驱动算法被广泛采用。
+\begin{itemize}
+\item 在交互感知方面，大多研究使用更多的传感器、开发和设计更复杂的模型以实现更高精度的状态估计或意图识别。由于不同模态的数据输入显著增加了系统的复杂度，无模型的数据驱动算法被广泛采用。由于可以在不依赖于精确建模的情况下提高系统的性能，因此无模型方法在辅助机器人状态感知、交互意图推理等方面发挥了重要的作用。然而，数据驱动方法的一个关键挑战是如何获得足够高质量的数据。其中在质量方面，数据通常来自于多种传感器，这些传感器在不同情况下可能会受到噪声、遮挡、运动模糊等因素的影响，在数量上面，人机混合系统通常难以通过实物或仿真获得大量的数据，因此限制了先进与大规模算法的落地应用。此外，在辅助机器人的实际开发中，为了减少发生风险的可能，对于感知推理识别算法的可解释性和可靠性往往具有更高要求。
 
-在决策规划中，人机交互安全方法面临的一个重大挑战是如何在减少机器人决策规划系统的保守性的同时保持对人类行为变化的鲁棒性。大多数辅助和康复机器人的设计在功能上能够提供所需的输出和执行预期任务，但由于没有使用最先进的技术，也没有在设计和控制概念中充分考虑人类用户的需求，因此效率受到质疑。因此，在设计中需要一种以人为中心的方法，考虑各个方面，如人类神经和肌肉骨骼系统，主要需要关注人类机器人交互（HRI）和交互界面技术。
+\item 在决策规划方面，辅助机器人交互安全面临的一个重大挑战是如何在减少机器人决策规划的保守性的同时保持对人类不确定行为变化的鲁棒性。大多数辅助和康复机器人的安全决策设计尽管在功能上能够提供所需的输出和执行预期任务，但由于通常是用降低系统的自主性的方法保证安全可靠，也没有在设计和控制概念中充分考虑人类用户的需求往往，因此效率受到质疑。近年来，以人为中心的交互决策方法考虑通过各个方面，如人类决策行为特征、神经和肌肉骨骼系统、感知系统置信度等各个方面，通过总额和设计算法实现对用户能力的自适应成为一种新的可行方案。
 
+\item 在控制执行层面，随着计算机设备计算能力的快速迭代发展，模型预测控制（MPC）、线性二次型调节器（LQR）等优化控制方法被越来越多地应用在辅助机器人当中。优化控制方法可以处理多输入多输出系统并适应外部的不确定性和干扰，通过考虑约束条件，如物理限制、关节限制以及安全性边界条件等，极大地提高了系统鲁棒性。然而，对于人机耦合的辅助机器人系统来说，在线优化的计算成本较高，实时性可能受到影响，此外对模型精度要求较高，如果模型不准确，可能导致控制效果不佳。因此，如何建立并简化人机耦合动力学模型约束以及实现高效的优化求解是目前实现优化控制方法在人机交互领域的主要挑战。
+\end{itemize}
+
+康复辅助机器人的人机交互研究包含了从传感器应用到算法设计再到本体开发的诸多内容，需要在设计时着重考虑安全性、个体适应性是其区别于其他种类机器人的典型特征。然而这两者往往是相悖的，过分强调安全排除一切可能造成风险的不确定性因素会导致机器人倾向于保守进而降低使用者体验。另一方面，人类行为虽然在许多方面明显有规则约束并且可预测，但它也始终是可变的、个体的，甚至是随机的，将更多使用者的自主行为引入交互系统中则会导致系统存在不可控的风险。因此，使用者与具有自主性的辅助机器人共同存在于一个控制系统中，即系统的控制权需要在人和机器人之间分配和协调\cite{ZhaoQianTanKongZhiZhongDeGongXiangXinXiHeGongXiangZiZhu2021}。近年来，人机共享自主的概念成为解决以上问题的一种可行途径，它主要围绕如何``理解和设计在两种各自具有一定程度自主性的实体间的交互空间''进行研究\cite{abbassTrustedAutonomyCognitive2016}。现有的共享自主框架仍然缺乏系统性和完整性，也缺乏对该领域中若干关键基础性问题的研究。在本文中，我们对人机混合闭环交互系统的结构与可能的不确定性来源进行了总结和分析，并且在此基础上进一步地对于共享自主方法应用在辅助机器人上的可能性进行了探索。
 
 \section{研究内容及章节结构安排}
 
-\subsection{二级节标题}
+在第二章中，我们主要围绕
 
-\subsubsection{三级节标题}
-
-\paragraph{四级节标题}
-
-\subparagraph{五级节标题}
-
-本模板 \pkg{ustcthesis} 是中国科学技术大学本科生和研究生学位论文的 \LaTeX{}
-模板， 按照《\href{https://gradschool.ustc.edu.cn/static/upload/article/picture/ce3b02e5f0274c90b9331ef50ae1ac26.pdf}
-{中国科学技术大学研究生学位论文撰写手册}》（以下简称《撰写手册》）和
-《\href{https://www.teach.ustc.edu.cn/?attachment_id=13867}
-{中国科学技术大学本科毕业论文（设计）格式}》的要求编写。
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua.
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur.
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-deserunt mollit anim id est laborum.
-
-
-
-\section{脚注}
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua.
-\footnote{Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
-  nisi ut aliquip ex ea commodo consequat.
-  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
-  eu fugiat nulla pariatur.}
+\section{本章小结}
