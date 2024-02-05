@@ -121,4 +121,18 @@
     \tau \dot{\phi}=1
     \label{eq:2-10}
 \end{equation}
-其中不同于离散型DMP，在节律型DMP中与轨迹持续时间相关的时间常数被所编码轨迹的频率$\Omega$所取代。此外，节律型的DMP必须确保初始阶段$\Phi = 0$和最终阶段$\Phi = 2\pi$一致，以便在轨迹重复过程中实现平稳过渡。
+其中不同于离散型DMP，在节律型DMP中与轨迹持续时间相关的时间常数被所编码轨迹的频率$\Omega$所取代。此外，节律型的DMP必须确保初始阶段$\Phi = 0$和最终阶段$\Phi = 2\pi$一致，以便在轨迹重复过程中实现平稳过渡。与离散DMP类似，节律型DMP同样也由$N$个RBF基函数定义，其唯一区别是基函数的中心位置是在0到$2\pi$的连续相位空间内均匀分布的，其表达式如下：
+\begin{equation}
+    f(\phi)=\frac{\sum_{i=1}^N \Psi_i(\phi) w_i r}{\sum_{i=1}^N \Psi_i(\phi)}
+    \label{eq:2-11}
+\end{equation}
+\begin{equation}
+    \Psi_i(\phi)=\exp \left(h\left(\cos \left(\phi-c_i\right)-1\right)\right)
+    \label{eq:2-12}
+\end{equation}
+其中，权值沿相空间均匀分布，参数$r$用于调制周期信号的振幅。
+\subsection{动态运动基元的学习}
+DMP中用于的权重参数$w_i$是线性的，因此可以使用各种类型的监督学习框架来拟合$w_i$，此外如果只有来自成本函数的信息可用，许多其他优化算法也可以被使用。其中学习的过程分为两个阶段：第一步是确定高级参数的取值，例如离散DMP中的目标位置g，初始位置$y_0$，时间常数$τ$，第二步为从示教轨迹中学习参数$w_i$。对于离散系统，参数g只是运动结束时的位置，g=（==），类似地，y0=（=0）。参数τ必须被调整为演示的持续时间。在实践中，从记录的轨迹中提取τ可能需要一些阈值来检测运动的开始和结束。对于学习一个离散DMP，当给定一个演示的轨迹及其关于时间的一阶导数和二阶导数$\{y_{demo},\dot{y_{demo}},\ddot{y_{demo}} \}$可以通过改写式\ref{eq:2-3}得到期望的示教轨迹形状$f_d$如下：
+\begin{equation}
+    f_{demo}=\tau^2 \ddot{y}_{demo}-\alpha_z\left(\beta_z\left(g-y_{demo}\right)-\tau \dot{y}_{demo}\right)
+\end{equation}
