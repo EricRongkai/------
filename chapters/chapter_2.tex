@@ -110,7 +110,7 @@
 \subsection{节律动态运动基元（Periodic DMP）}
 当需要被DMP编码的运动遵某种节奏模式时，可以使用节律型DMP（也称周期DMP）进行处理。节律DMP在离散DMP的模型的基础上主要改变了相位变量。在节律DMP中重新定义的二阶系统的公式为：
 \begin{equation}
-    \dot{z}=\Omega(\alpha(\beta(-y)-z)+f(\phi))
+    \dot{z}=\Omega(\alpha(\beta(g-y)-z)+f(\phi))
     \label{eq:2-8}
 \end{equation}
 \begin{equation}
@@ -132,7 +132,55 @@
 \end{equation}
 其中，权值沿相空间均匀分布，参数$r$用于调制周期信号的振幅。
 \subsection{动态运动基元的学习}
-DMP中用于的权重参数$w_i$是线性的，因此可以使用各种类型的监督学习框架来拟合$w_i$，此外如果只有来自成本函数的信息可用，许多其他优化算法也可以被使用。其中学习的过程分为两个阶段：第一步是确定高级参数的取值，例如离散DMP中的目标位置g，初始位置$y_0$，时间常数$τ$，第二步为从示教轨迹中学习参数$w_i$。对于离散系统，参数g只是运动结束时的位置，g=（==），类似地，y0=（=0）。参数τ必须被调整为演示的持续时间。在实践中，从记录的轨迹中提取τ可能需要一些阈值来检测运动的开始和结束。对于学习一个离散DMP，当给定一个演示的轨迹及其关于时间的一阶导数和二阶导数$\{y_{demo},\dot{y_{demo}},\ddot{y_{demo}} \}$可以通过改写式\ref{eq:2-3}得到期望的示教轨迹形状$f_d$如下：
+DMP中用于的权重参数$w_i$是线性的，因此可以使用各种类型的监督学习框架来拟合$w_i$，此外如果只有来自成本函数的信息可用，许多其他优化算法也可以被使用。其中学习的过程分为两个阶段\cite{saverianoDynamicMovementPrimitives2023}：第一步是确定高级参数的取值，例如离散DMP中的目标位置g，初始位置$y_0$，时间常数$τ$，第二步为从示教轨迹中学习参数$w_i$。
+
+对于离散DMP，参数$g$可以设置为示教轨迹结束时的位置，类似的初始状态$y_0$设置为轨迹开始的位置。在实际使用中，时间缩放系数$τ$设置为示教序列的持续时间，但是从记录的示教轨迹中提取$τ$需要一些额外的轨迹检测分割算法来确定运动的开始和结束位置\cite{tanApplyingAdaptiveControlb}。例如，可以采用轨迹最大速度的2\%作为分割阈值，$τ$可以选择为持续时间的1.05倍用于补偿由于阈值化而导致的轨迹开始和结束时的缺失。对于节律DMP，$g$是一个周期轨迹基准锚点，一般设置为所示教周期轨迹的中间位置，可用于调整周期信号的基准位置。此外，在节律DMP中的参数$\Omega$被一般并被设置为所演示的节奏运动的周期除以2π，在实际应用中，周期信号的频率信息需要被傅里叶分解等方法额外计算。由于离散DMP和节律DMP的二阶系统主要差别在于时间缩放系数$\tau = 1/\Omega$，因此在这里仅分析离散DMP的学习过程。当给定一个组演示轨迹及其关于时间的一阶导数和二阶导数$\{y_{demo},\dot{y}_{demo},\ddot{y}_{demo} \}$可以通过改写式\ref{eq:2-3}得到一个函数近似问题，其中强迫项$f$需要尽可能得逼近示教轨迹形状$f_{target}$：
 \begin{equation}
-    f_{demo}=\tau^2 \ddot{y}_{demo}-\alpha_z\left(\beta_z\left(g-y_{demo}\right)-\tau \dot{y}_{demo}\right)
+    f_{target}=\tau^2 \ddot{y}_{demo}-\alpha_z\left(\beta_z\left(g-y_{demo}\right)-\tau \dot{y}_{demo}\right)
+    \label{eq:2-13}
 \end{equation}
+学习的过程基于局部加权最小二乘法（LWR）进行\cite{schaalConstructiveIncrementalLearning1998}，此外也可以使用混合模型或者高斯过程等其他的函数逼近器来进行。通过寻找外部强迫项$f$中每个核函数对应的$w_i$使得由下式定义的局部加权二次误差最小：
+\begin{equation}
+    J_i=\sum_{t=1}^P \Psi_i(t)\left(f_{\text {target }}(t)-w_i \xi(t)\right)^2
+    \label{eq:2-14}
+\end{equation}
+其中，离散DMP的$ξ(t) = x(t)(g−y_0)$而节律型DMP的$ξ(t) = r$，计算该加权线性回归问题，有两种求解方法，当可以获得完备的示教数据时，使用离线学习方法获取权重$w_i$：
+\begin{equation}
+    w_i=\frac{\mathbf{s}^T \boldsymbol{\Gamma}_i \mathbf{f}_{\text {target }}}{\mathbf{s}^T \boldsymbol{\Gamma}_i \mathbf{s}}
+    \label{eq:2-15}
+\end{equation}
+其中：
+\begin{equation}
+    \mathbf{s}=\left(\begin{array}{c}
+    \xi(1) \\
+    \xi(2) \\
+    \ldots \\
+    \xi(N)
+    \end{array}\right) \quad \boldsymbol{\Gamma}_i=\left(\begin{array}{cccc}
+    \Psi_i(1) & & & 0 \\
+    & \Psi_i(2) & & \\
+    & & \ldots & \\
+    0 & & & \Psi_i(N)
+    \end{array}\right) \quad \mathbf{f}_{\text {target }}=\left(\begin{array}{c}
+    f_{\text {target }}(1) \\
+    f_{\text {target }}(2) \\
+    \ldots \\
+    f_{\text {target }}(N)
+    \end{array}\right)
+    \label{eq:2-16}
+\end{equation}
+此外，也可以通过递归最小二乘法实现权重$w_i$的增量学习，利用期望的轨迹形状与当前学习到的形状之间的误差和遗忘因子λ，在每个时间步迭代更新权重：
+\begin{equation}
+    \begin{gathered}
+    w_i(t)=w_i(t)+\Psi_i P_i\left(t\right) \xi(t) e\left(t\right), \\
+    P_i\left(t_{J+1}\right)=\frac{1}{\lambda}\left(P_i\left(t\right)-\frac{P_i\left(t\right)^2 \xi(t)^2}{\frac{\lambda}{\Psi_i}+P_i\left(t\right) \xi(t)^2}\right)
+    \end{gathered}
+    \label{eq:2-17}
+\end{equation}
+其中，参数的初始值分别为$w_i(0)=0$和$P_i(0)=1$，遗忘因子决定了权重更新的速率，其中残差定义如下：
+\begin{equation}
+    e\left(t\right)=f_{target}\left(t\right)-w_i\left(t\right) \xi(t)
+    \label{eq:2-18}
+\end{equation}
+\section{本章小结}
+在本章节中，我们首先对机器人行为系统的建模过程进行了总结和分析，在此基础上从人类的视角进一步分析了闭环人机交互过程的整个流程以及其中存在的不确定性来源。此外，就处理人机交互过程中的不确定性问题，引入了共享自主的概念和相关应用方式。最后针对在共享自主方法中的人类行为表示方法，介绍了运动基元的相关理论，并就动态运动基元这一典型代表展开了详细的分析和介绍。
