@@ -85,15 +85,15 @@
 \subsection{离散动态运动基元（Discrete DMP）}
 离散动态运动基元通常描述点到点的运动轨迹，其特点是在运动开始和运动结束时的速度为零。动态运动基元源于生物系统的运动控制，可以被看作是一种稳定的非线性动力系统的严谨数学表述，其本质是一种从示教轨迹中学习位置$y$和速度$\dot{y}$到加速度$\ddot{y}$的映射函数。来自于人类的示教运动轨迹通常是一个连续的时间序列，在算法运行的过程中通过假定已经观测到当前时刻$t$的轨迹位置和速度${y_t,\dot{y_t}}$已知，DMP通过将训练数据封装成一个线性二阶动力学模型（一个质量-弹簧-阻尼器系统）计算当前的期望加速度$\ddot{y_t}$，并由此获得下一个时刻的期望位置$y+\dot{y}\Delta t$和期望速度$\dot{y}+\ddot{y}\Delta t$\cite{HuangJiQiRenYunDongGuiJiDeMoFangXueXiZongShu}。给定一条长度为N的轨迹$\{ t_n,y,\dot{y},\ddot{y} \}_{n=1}^N$一个单自由度离散DMP由以下一组非线性微分方程定义：
 \begin{equation}
-    \tau \dot{z}=\alpha_z\left(\beta_z(g-y)-z\right)+f(x)
+    \dot{z}=\tau \alpha_z\left(\beta_z(g-y)-z\right)+f(x)
     \label{eq:2-3}
 \end{equation}
 \begin{equation}
-    \tau \dot{y}=z 
+    \dot{y}=\tau z 
     \label{eq:2-4}
 \end{equation}
 \begin{equation}
-    \tau \dot{x}=-\alpha_x x
+    \dot{x}=-\tau \alpha_x x
     \label{eq:2-5}
 \end{equation}
 其中$z$是一个辅助变量。$α_z>0$和$β_z>0$为常数分别用于表示刚度和阻尼系数，一般在应用中设置为$α_z=4β_z$$\tau$的比例可以保证系统稳定收敛，此外还可以在保持系统收敛性的同时，从训练数据中学习到增益$α_z$和$β_z$\cite{tanApplyingAdaptiveControlb}。$\tau$为轨迹的时间缩放系数，时间$t$以可微的相位变量$x$表示。在式\ref{eq:2-3}中的$g$表示轨迹的目标位置。$f(x)$为一个改变弹簧阻尼系统的外部强迫项，其被定义为由$N$个非线性径向基函数（RBF）的线性组合，使机器人能够跟踪从初始位置$y_0$到最终目标位置$g$的任何平滑轨迹，其定义如下：
