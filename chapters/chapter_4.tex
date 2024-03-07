@@ -326,11 +326,11 @@
         \For{$\Theta ^{m}$ in $\mathscr{L}$}
         {
             基于当前观测$Y_{1:T_{obs}}$，迭代执行EM算法10次优化时间缩放系数$\tau^m$，并记录每次迭代更新后的值$[\tau_m^1,\tau_m^1,...,\tau_m^{10}]$\;
-            计算似然函数$l_{T_{obs}}^m=\text{ln}p(\mathbf{Y_{1:T_{obs}}}|\Theta ^{m})$ \;
+            计算似然函数求和$l_{T_{obs}}^m=\text{ln}p(\mathbf{Y_{1:T_{obs}}}|\Theta ^{m})=\sum_{1}^{T_{obs}} \text{ln}p(y_t|\Theta ^{m})$ \;
         }
         计算匹配度最高的PDMP模型：$m=argmax_m l_{T_{obs}}^m$\;
         计算STS运动时间估计值：$\hat T = f_m(\tau_m)$\;
-        计算EM迭代过程中参数$\tau$的方差作为估计置信度水平量化指标：$b = var([\tau_m^1,\tau_m^1,...,\tau_m^{10}])$\;
+        计算EM迭代过程中参数$\tau$的方差作为估计置信度水平量化指标：$b = 1 - var([\tau_m^1,\tau_m^1,...,\tau_m^{10}]) * 100$\;
     }
     \caption{基于PDMP运动基元库的STS运动时间意图估计}
     \label{algo:4-2}
@@ -396,14 +396,14 @@
 \end{equation}
 其中强迫项由各关节的DMP权重调节，此外观测噪声协方差矩阵和状态转移噪声协方差矩阵$Q\in \mathbf{R}^{6 \times 6}$，$R\in \mathbf{R}^{6 \times 6}$，其可以通过经验设定或通过EM算法迭代更新\cite{bishopPatternRecognitionMachine2006}。
 
-\subsection{实验结果} 
-在建立包含了三种运动速度PDMP先验STS动作模型库后，基于对一位参与者随机站立运动的关节轨迹观测数据我们测试了所提出算法的性能表现。其中关于完成一次STS运动时间的真值$T_{ground}$被定义为髋关节运动轨迹速度由0到阈值$\upsilon $和由阈值$\upsilon$到0的时间长度。关节观测数据采样率为40Hz，其中我们每获取5个观测样本（125毫秒）后使用EM算法优化并更新一次时间缩放系数$\tau$。在图\ref{fig:4-4}中我们给出了下肢三个关节运动轨迹与PDMP模型产生的匹配轨迹随时间变化的过程，三个关节的运动轨迹分别对应于X、Y、Z三个坐标轴。其中图中PDMP模型产生的匹配轨迹是由当前模型所对应的权重向量以及经过EM算法优化过后的时间缩放系数$\tau$，并通过标准离散DMP模型的微分方程迭代生成的。其中，图示中的 PDMP（概率动态规划匹配）模型所产生的匹配轨迹，是在当前模型经过 EM 算法优化处理的时间缩放系数$\tau$的基础上，通过标准离散 DMP 模型的微分方程以及所对应的动作权重向量迭代运算得出的。黑色方块为轨迹起始点，
+\subsection{实验与分析} 
+在建立包含了三种运动速度PDMP先验STS动作模型库后，基于对一位参与者随机站立运动的关节轨迹观测数据我们测试了所提出算法的性能表现。在图\ref{fig:4-4}中我们给出了下肢三个关节运动轨迹与PDMP模型产生的匹配轨迹随时间变化的过程，三个关节的运动轨迹分别对应于X、Y、Z三个坐标轴。其中关于完成一次STS运动时间的真值$T_{ground}$被定义为髋关节运动轨迹速度由0到阈值$\upsilon $和由阈值$\upsilon$到0的时间长度。关节观测数据采样率为40Hz，我们每获取5个观测样本（125毫秒）后使用EM算法优化并更新一次时间缩放系数$\tau$。图\ref{fig:4-4}中PDMP模型产生的匹配轨迹是由当前模型所对应的权重向量以及经过EM算法优化过后的时间缩放系数$\tau$，并通过标准离散DMP模型的微分方程迭代生成的。其中，图示中的 PDMP（概率动态规划匹配）模型所产生的匹配轨迹，是在当前模型经过 EM 算法优化处理的时间缩放系数$\tau$的基础上，通过标准离散 DMP 模型的微分方程以及所对应的动作权重向量迭代运算得出的。黑色方块为关节运动轨迹的归一化起始点，红色三角为预定义的轨迹归一化终点位置（人体完全站立状态，下肢三个关节角度为0）。在图\ref{fig:4-5}中给出了各个关节运动轨迹在被完全观测后，匹配轨迹和观测值的对比。此外，我们在图\ref{fig:4-5}中也给出了在STS技能先验库$\mathscr{L}$中各个PDMP模型对于当前观测序列的似然累积量的平均值$l_{ave}$、预测动作完成时间$\hat T$以及关于预测值的置信度$b$随着观测数据的累积的变化曲线。
 
-\begin{sidewaysfigure}
-    \centering\includegraphics[width=1\textwidth]{figures/4-Fig-4.pdf}
-    \caption{下肢三关机矢状面运动观测数据与PDMP匹配轨迹随时间变化的情况}
-    \label{fig:4-4}
-\end{sidewaysfigure}
+% \begin{sidewaysfigure}
+%     \centering\includegraphics[width=1\textwidth]{figures/4-Fig-4.pdf}
+%     \caption{下肢三关机矢状面运动观测数据与PDMP匹配轨迹随时间变化的情况}
+%     \label{fig:4-4}
+% \end{sidewaysfigure}
 
 \begin{figure}[!t]
     \centering\includegraphics[width=1\textwidth]{figures/4-Fig-5.pdf}
