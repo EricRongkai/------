@@ -5,7 +5,7 @@
 \section{研究动机}    
 四肢瘫痪和上肢截肢，尤其是因交通事故、工伤、跌倒和枪伤等原因导致的，不仅对受影响者的生活质量产生巨大负面影响，还严重削弱了他们进行日常自我护理的能力。其中四肢瘫痪是指横贯性病变发生在脊髓较高水平位上，一般将第二胸椎以上的颈脊髓横贯性病变引起的截瘫称为高位截瘫。根据中国残疾人联合会数据，中国的肢体残疾人数量为2400万人左右\cite{ZhongGuoCanJiRenFuLiJiJinHuiHuoJuan600WanYuanBangFuPinKunZhiCanRenShi_GunDongXinWen_ZhongGuoZhengFuWanga}，其中截肢和四肢瘫痪是肢体残疾中较为严重的类型之一，他们中的大多数人最终部分或完全依赖于他们的照顾者\cite{vitorinodinizRachimeduralTraumaEpidemiology2016}。世界卫生组织已经呼吁各国积极推进辅助设备的研究，我国在2021年九月发布了《中国脊髓损伤者生存质量白皮书》意在促进脊髓损伤辅助相关研究工作的推进。根据一项调查研究表明，除了恢复运动能力外，他们的主要兴趣之一是能够控制辅助机器人或电子设备，例如电脑、轮椅、机械臂和智能假肢。这些设备将有效提高他们日常生活的独立性，并减轻家庭的照顾负担    \cite{orejuela-zapataSelfHelpDevicesQuadriplegic2019}。因此，由于他们运动能力的缺陷，通常需要定制的人机交互界面来满足不同的需求。  
 
-如论文第一章所述，目前基于生理信号的定制化人机交互方式已得到了广泛研究。其中已有研究应用脑机接口（BCI）操控智能电动轮椅\cite{cruzSelfPacedBCICollaborative2021}、控制虚拟飞行器\cite{krygerFlightSimulationUsing2017}以及遥控操作辅助机械臂\cite{gilliniAssistiveSharedControl2021}。然而，基于生理信号的交互设备通常存在带宽低、使用者培训和练习使用周期长、计算需求高以及需要用户高度集中的问题。由于得到的传感器数据没有直接的物理意义，因此大多数该类型的交互设备只能在有限的离散命令空间中工作。最近的一项用户研究显示，四肢瘫痪患者更倾向于使用方面的可穿戴交互设备\cite{zhangUnderstandingInteractionsSmart2022}。非侵入式的可穿戴体-机交互接口通过对身体某些部位（如头部，手指，耳部肌肉等位置）的运动跟踪来执行实时感知信号获取，因此侵入性较小，已有研究正在对其成为定制化交互界面的可能性进行了研究\cite{miehlbradtDatadrivenBodyMachine2018a,zhouNonInvasiveHumanMachineInterface2022}。与捕获脑机接口捕获大脑激活电信号不同，体机交互设备通常需要捕获人体的肌肉活动。因此，在设计定制化体-机交互界面之前，首先需要明确使用者的残余活动能力。颈椎脊髓损伤的分级主要依据ASIA（美国脊髓损伤协会）制定的标准\cite{SpinalCordInjury}，具体如下：
+如论文第一章所述，目前基于生理信号的定制化人机交互方式已得到了广泛研究。其中已有研究应用脑机接口（BCI）操控智能电动轮椅\cite{cruzSelfPacedBCICollaborative2021}、控制虚拟飞行器\cite{krygerFlightSimulationUsing2017}以及遥控操作辅助机械臂\cite{gilliniAssistiveSharedControl2021}。然而，基于生理信号的交互设备通常存在带宽低、使用者培训和练习使用周期长、计算需求高以及需要用户高度集中的问题。由于得到的传感器数据没有直接的物理意义，因此大多数该类型的交互设备只能在有限的离散命令空间中工作。最近的一项用户研究显示，四肢瘫痪患者更倾向于使用方便的可穿戴交互设备\cite{zhangUnderstandingInteractionsSmart2022}。非侵入式的可穿戴体-机交互接口通过对身体某些部位（如头部，手指，耳部肌肉等位置）的运动跟踪来执行实时感知信号获取，因此侵入性较小，已有研究正在对其成为定制化交互界面的可能性进行了研究\cite{miehlbradtDatadrivenBodyMachine2018a,zhouNonInvasiveHumanMachineInterface2022}。与捕获脑机接口捕获大脑激活电信号不同，体机交互设备通常需要捕获人体的肌肉活动。因此，在设计定制化体-机交互界面之前，首先需要明确使用者的残余活动能力。颈椎脊髓损伤的分级主要依据ASIA（美国脊髓损伤协会）制定的标准\cite{SpinalCordInjury}，具体如下：
 
 \begin{figure}[htb]
     \centering
@@ -325,7 +325,7 @@ p({m_t}|{z_t}) = \mathcal{N}({\boldsymbol{C}}{z_t},{{\boldsymbol{W}}_t})
 
 综合来看，消融实验的结果表明仅使用陀螺仪角速度信息和柔性传感器拉伸信息的GS配置模式表现出最综合的性能优势，其具有更为优异的任务完成效率和线性度，同时保持适度了对光标操控的动态性能。因此，我们选择GS模式作为实验的基准配置。
 
-\subsection{DCM、UII以及SCM解码方法的实验表现}     
+\subsection{三种解码方法的实验表现与分析}     
 \subsubsection{八方向目标到达任务实验表现}图\ref{fig:3-13}（A）显示了前文中所提到的三种不同数据解码方法在八方向目标到达任务中的实验表现。相较于其他两种解码方式，尽管基于确定性规则直接映射解码模式（DCM）在``AveSpeed''($p<0.001$)指标方面具有优势，但与意图推理模式（UII）相比并没有显着改变任务完成时间花费指标``TS''。这是因为使用直接映射解码的参与者经常超越任务目标的中心位置，因此参与者往往需要更多的时间来调整操控光标，使其保持在激活的环形目标的范围之内导致降低了任务完成效率。此外，在实验中我们发现由于柔性传感器的在使用者运动中的不确定性形变常常会导致光标向使用者意想不到的方向移动。然而，交互设备使用者通常能够借助显示屏的视觉反馈快速调整光标的位置，但这会在一定程度上增加他们的认知负担。  
 \begin{figure}[htb]
     \centering

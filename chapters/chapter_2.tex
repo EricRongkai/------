@@ -82,7 +82,7 @@
 
 行为克隆和逆强化学习等模仿学习算法主要侧重于解决马尔科夫决策过程中的决策问题，其主要特点是需要与环境交互并且任意时刻的交互都会影响下一时刻。运动技能轨迹模仿学习则侧重于对于在一段时间内的人类连续动作$a_{1:T}$的理解和规划，其输入通常为时间或者其他无环境交互影响的状态\cite{HuangJiQiRenYunDongGuiJiDeMoFangXueXiZongShu}。机器人技能模仿学习的概念最早由美国南加州大学的Schaal等人\cite{schaalImitationLearningRoute1999}提出。此外，大量的实验证据表明生物系统能够将基本的运动单元进行组合和适应性调整，从而完成复杂任务，这一观点最终促成了运动基元理论的提出\cite{saverianoDynamicMovementPrimitives2023}。在后续的发展中，Ijspeert等人\cite{ijspeertDynamicalMovementPrimitives2013a,righettiDynamicHebbianLearning2006a}基于弹簧阻尼模型进一步提出了动态运动基元（DMP），其为一种``一眼模仿学习（One-Shot Imitation Learning）''方法，仅仅需要单条的示教轨迹即可实现点到点或周期运动的泛化。针对多条轨迹的学习，Paraschos等人提出了基于高斯分布的概率运动基元（ProMP），其利用最大似然估计对轨迹参数的概率的分布进行估计，并根据高斯条件概率运算实现轨迹泛化。此外，参数化的高斯混合模型（GMM）\cite{paraschosProbabilisticMovementPrimitives2013}、隐马尔可夫模型（HMM）\cite{rabinerIntroductionHiddenMarkov1986}以及基于核技巧的核化运动基元（KMP）\cite{huangKernelizedMovementPrimitives2019}都实现了人类运动时间序列的泛化学习。尽管不同的实现方法在收敛性以及输入输出方式上存在差异，作为元学习的一种，这些方法都对数据的依赖较小，目前在娱乐游戏、医疗机器人、自动驾驶以及人机交互中得到了广泛的应用。下面就本文中使用较多的动态运动基元DMP进行介绍，其根据引用的场景不同具有多种变体。
 
-\subsection{离散动态运动基元（Discrete DMP）}
+\subsection{离散动态运动基元}
 离散动态运动基元通常描述点到点的运动轨迹，其特点是在运动开始和运动结束时的速度为零。动态运动基元源于生物系统的运动控制，可以被看作是一种稳定的非线性动力系统的严谨数学表述，其本质是一种从示教轨迹中学习位置$y$和速度$\dot{y}$到加速度$\ddot{y}$的映射函数。来自于人类的示教运动轨迹通常是一个连续的时间序列，在算法运行的过程中通过假定已经观测到当前时刻$t$的轨迹位置和速度${y_t,\dot{y_t}}$已知，DMP通过将训练数据封装成一个线性二阶动力学模型（一个质量-弹簧-阻尼器系统）计算当前的期望加速度$\ddot{y_t}$，并由此获得下一个时刻的期望位置$y+\dot{y}\Delta t$和期望速度$\dot{y}+\ddot{y}\Delta t$\cite{HuangJiQiRenYunDongGuiJiDeMoFangXueXiZongShu}。给定一条长度为N的轨迹$\{ t_n,y,\dot{y},\ddot{y} \}_{n=1}^N$一个单自由度离散DMP由以下一组非线性微分方程定义：
 \begin{equation}
     \dot{z}=\tau \alpha_z\left(\beta_z(g-y)-z\right)+f(x)
@@ -107,7 +107,7 @@
 \end{equation}
 其中，$c_i$是沿运动相位分布的高斯基函数的中心位置，其宽度为$h_i$。对于一个给定的基函数数量$N$，设$τ$等于所需运动的持续时间，则基函数的中心位置可以定义为$c_i=\exp \left(-\alpha_x i-1 / N-1\right)$，基函数宽度定义为为$h_i=1 /\left(c_{i+1}-c_i\right)^2$。若轨迹是高自由度的，对于每个自由度的权重$w_i$应该从单独的训练数据中进行学习，以达到期望的行为轨迹。权重数量的选择应基于所需的轨迹分辨率，当需要更高分辨率轨迹的时候使用。对于一个具有多个自由度的行为系统，可以给予每一个自由度自己的动态系统如公式\ref{eq:2-3}和\ref{eq:2-4}来表示每个自由度的运动，但用公共相位\ref{eq:2-5}来同步各个自由度轨迹的迭代运行。
 
-\subsection{节律动态运动基元（Periodic DMP）}
+\subsection{节律动态运动基元}
 当需要被DMP编码的运动遵某种节奏模式时，可以使用节律型DMP（也称周期DMP）进行处理。节律DMP在离散DMP的模型的基础上主要改变了相位变量。在节律DMP中重新定义的二阶系统的公式为：
 \begin{equation}
     \dot{z}=\Omega(\alpha(\beta(g-y)-z)+f(\phi))
