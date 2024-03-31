@@ -11,12 +11,12 @@
 \subsection{坐立辅助人机耦合动力学模型}  
 作为一种简化的人体生物力学模型，三重倒立摆模型在人机混合系统中得到了广泛的应用。图\ref{fig:4-1}给出了基于三重倒立摆模型的人体坐立运动结构图，其中我们通过保留下肢髋、膝、踝3个关节以及足、小腿、大腿和躯干（上身和头部）4个刚体在矢状面的运动构建并分析了人体在坐立过程中的动力学模型。其中，踝关节、膝关节、髋关节的扭矩被用来控制模型的运动，并且对这三个关节的运动轨迹的观测也被用于意图推断。来自于辅助机器人的辅助力作用于躯干，通过欧拉-拉格朗日方法可以推导出站立辅助过程的人机耦合动力学方程如下：
 \begin{equation}
-    M(\theta) \ddot{\theta}+C(\theta, \dot{\theta})+G(\theta)=\tau+\tau_{e x t}=\tau_{tot}
+    \mathbf{M}(\theta) \ddot{\theta}+\mathbf{C}(\theta, \dot{\theta})+\mathbf{G}(\theta)=\tau+\tau_{ext}=\tau_{tot}
     \label{eq:4-1}
 \end{equation}
-其中$M(\theta)\in \mathbb{R}^{3\times 3}$是正定的对称惯性矩阵，$C(\theta, \dot{\theta})\in \mathbb{R}^3$为科里奥利力和向心力矢量，$G(\theta)\in \mathbb{R}^5$为重力向量。$\theta \in \mathbb{R}^3$ 代表着踝关节（$\theta_1$）, 膝关节（$\theta_2$）, 髋关节（$\theta_3$）三个关节角度的向量。$\tau \in \mathbb{R}^3$为人体自主运动产生的关节扭矩而$\tau_{ext} \in \mathbb{R}^3$为辅助机器人对被辅助对象在笛卡尔空间施加的外力在关节空间产生的相应扭矩。考虑到外力$F\in \mathbb{R}^m$为施加于人体模型上特定点$k$的一个外部广义力向量，设与该点相关联的雅可比矩阵为$J_k(\theta)\in \mathbb{R}^{m\times 3}$，则由机器人辅助作用于上身躯干的力量产生的相应关节扭矩为：
+其中$\mathbf{M}(\theta)\in \mathbb{R}^{3\times 3}$是正定的对称惯性矩阵，$\mathbf{C}(\theta, \dot{\theta})\in \mathbb{R}^3$为科里奥利力和向心力矢量，$\mathbf{G}(\theta)\in \mathbb{R}^5$为重力向量。$\theta \in \mathbb{R}^3$ 代表着踝关节（$\theta_1$）, 膝关节（$\theta_2$）, 髋关节（$\theta_3$）三个关节角度的向量。$\tau \in \mathbb{R}^3$为人体自主运动产生的关节扭矩而$\tau_{ext} \in \mathbb{R}^3$为辅助机器人对被辅助对象在笛卡尔空间施加的外力在关节空间产生的相应扭矩。考虑到外力$F\in \mathbb{R}^m$为施加于人体模型上特定点$k$的一个维度为$m$的外部广义辅助力向量，设与该点相关联的雅可比矩阵为$J_k(\theta)\in \mathbb{R}^{m\times 3}$，则由机器人辅助作用于上身躯干的力量产生的相应关节扭矩为：
 \begin{equation}
-    \tau_{\text {ext}}=\boldsymbol{J}_k^T(\boldsymbol{\theta}) \boldsymbol{F}
+    \tau_{\text {ext}}=\mathbf{J}_k^T(\theta) F
     \label{eq:4-2}
 \end{equation}
 关于动力学方程中的矩阵参数确定，在实验中可以直接测量每个人的身高和体重，而每个身体部分的运动学和动力学参数无法直切确定，因此关于不同参与者的各肢体动力学参数的选择可以通过一个标准参数表进行计算\cite{tozerenHumanBodyDynamics2000}。
@@ -323,7 +323,7 @@
 其中的协方差矩阵可由卡尔曼滤波得到，基于EM的PDMP轨迹时间缩放参数优化算法的完整流程如算法\ref{algo:4-1}所示。
 
 \subsection{基于先验知识库的人体坐立运动时间意图估计}
-由于EM算法需要给定参数$\tau$的初值，而参数的初值选择直接影响收敛效率以及能否得到全局最优解，并且在迭代过程中可能会陷入局部最优解，导致其在运动时间估计中无法适应大范围的时间变化。因此我们在实验中分别离线采集了慢速、中等速度、快速三种坐立动作轨迹，并基于此通过PDMP模型构建了运动先验知识库$\mathscr{L}$。
+由于EM算法需要给定参数$\tau$的初值，而参数的初值选择直接影响EM算法的迭代收敛效率以及能否得到全局最优解，导致其在运动时间估计中无法适应大范围的时间变化。因此我们在实验中分别离线采集了慢速、中等速度、快速三种坐立动作轨迹，并基于此通过PDMP模型构建了运动先验知识库$\mathscr{L}$。
 
 \begin{figure}[htb]
     \centering\includegraphics[width=1\textwidth]{figures/4-Fig-3.pdf}
