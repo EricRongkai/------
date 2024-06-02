@@ -12,15 +12,17 @@
 \input{ustcsetup.tex}
 
 \begin{document}
-
+% 关闭PDF压缩，加速编译
+\special{dvipdfmx:config z 0}
 \maketitle
 \copyrightpage
 
 \frontmatter
 \input{chapters/abstract.tex}
 \tableofcontents
-% \listoffigures
-% \listoftables
+\listoffigures
+\listoftables
+
 % \input{chapters/notation.tex}
 
 \mainmatter
@@ -41,7 +43,7 @@
 % \input{chapters/complementary.tex}
 
 \backmatter
-% \input{chapters/acknowledgements.tex}
+\input{chapters/acknowledgements.tex}
 \input{chapters/publications.tex}
 
 \end{document}
