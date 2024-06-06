@@ -1,20 +1,25 @@
 \chapter{基于模型匹配的机器人辅助人体坐立运动时间自适应}
-人类从坐姿到站姿（STS）的转换是日常生活中一项普遍存在的动作，它涉及到人体运动中复杂的感知与执行机制，以便对高度非线性的肌肉骨骼系统进行操控。随着人口老龄化的加剧，高龄、中风和瘫痪等问题导致的坐立困难，不仅严重限制了失能者和弱能者的自理能力，也给社会和家庭带来了日渐增重的护理压力。因此，整合了站立辅助功能的功能性辅助机器人、智能轮椅以及通用人形辅助机器人在缓解这一问题方面扮演着至关重要的角色。机器人辅助人类完成站立的过程是一个典型的人机共融场景，本章就机器人辅助坐立优化控制中基于坐立运动轨迹观测的人机交互意图在线预测进行了研究。在实际的STS辅助中，被辅助的人完成坐立运动的时间是随机的，甚至是在中途切换运动模式选择坐下，因此对于被辅助对象的交互意图感知是设计优化控制器的难点。为了实现这一目标，围绕一个共享自主框架中的轨迹优化问题，本章针对其中的人体完成坐立运动的时间不确定性提出了一种基于模型的运动时间预测方法，以提高辅助机器人的自适应能力。
+人类从坐姿到站姿的转换是日常生活中常见的动作，涉及复杂的人体感知和执行机制。具有站立辅助功能的机器人、智能轮椅和人形辅助机器人对帮助失能或半失能人群完成坐立动作起着至关重要的作用。被辅助人的坐立完成时间具有随机性，对于被辅助对象完成运动的交互意图感知也是是设计优化控制器的难点。本章研究了在机器人辅助坐立控制中，如何基于坐立运动轨迹观测在线预测被辅助对象意图完成运动的时间。虽然基于数据驱动的方法在多项预测任务中效果显著，但在仍然在难以获得大量人体运动数据的情况下实时。此外，考虑到康复辅助机器人必须保证系统的安全，相关算法的可解释性变得尤为重要。针对这些问题，围绕一个共享自主框架中的轨迹优化问题，本章提出了一种基于系统参数辨识的运动时间预测方法。理论分析表明，此方法通过单一运动示教轨迹即可预测运动速度，可有效提升数据使用效率。
+
 \section{研究动机}
-坐立活动是人类日常生活中最常见且基本的动作之一，要完成这一动作，需要依赖足够强壮且健康的下肢肌肉群来执行一系列复杂的生理活动。然而，随着我国人口老龄化的不断加深，相关研究表明即使是健康的老年人，也可能因为频繁重复的膝关节运动导致下肢关节功能和运动机能退化\cite{heidariKneeOsteoarthritisPrevalence2011}，此外还有大量的膝无力和患有各种慢性疾病或残疾人存在站立转移困难的问题。在生物工程和康复机器人领域，存在诸多关于设计和制造用于坐立助力的功能性辅助机器人的研究。例如，Jun和Kim等人\cite{hong-guljunWalkingSittostandSupport2011,inhokimKinematicAnalysisSittostand2011}开发了一个名为SMW的站立辅助机器人系统，该机器人主要基于一个可以控制的支撑板，用于辅助人体上身运动，并通过控制一个线性执行器跟随一个预定义轨迹来引导使用者完成由坐姿到站姿的转移。在该研究中，作者提出了两种预定义的轨迹，并利用位于支撑板的力和扭矩传感数据比较了它们在完成辅助时的特性。Mederic和Pasqui等人\cite{medericElderlyPeopleSit2006}基于力控制方法设计了坐立辅助机器人的控制策略，他们针对人体模型的零力矩点（ZMP）的平衡约束最小化优化问题设计了一个简化的ZMP，并基于此控制了用户和机器人之间的交互力。此外，一些工作对模仿人类在进行坐立运动转移时的行为进行了研究，为设计实现可靠的辅助机器人人机共融系统提供了有力的支撑。其中针对人体坐立转移过程中的下肢关节的扭矩和活动范围等运动学与动力学特征被广泛研究，例如Lindemann等人\cite{galliQuantitativeAnalysisSit2008}研究了健康人群在完成坐立期间下肢关节的扭矩变化曲线和活动范围，Yoshioka等人\cite{yoshiokaBiomechanicalAnalysisRelation2009}通过对大量运动实验数据的研究，确定了最小峰值关节力和它们与运动时间的关系。
+坐立活动是人类日常生活中最常见且基本的动作之一，要完成这一动作，需要依赖足够强壮且健康的下肢肌肉群来执行一系列复杂的生理活动。然而，随着我国人口老龄化的不断加深，相关研究表明即使是健康的老年人，也可能因为频繁重复的膝关节运动导致下肢关节功能和运动机能退化\cite{heidariKneeOsteoarthritisPrevalence2011}，此外还有大量的膝无力和患有各种慢性疾病或残疾人存在站立转移困难的问题。在生物工程和康复机器人领域，存在诸多关于设计和制造用于坐立助力的功能性辅助机器人的研究。近年来随着人工智能技术和通用人形机器人的发展，智能化程度更高和约束更少的坐立辅助机器人成为研究的主要方向。例如使用通用的移动机械臂平台进行站立辅助，其相较于定制化设备可以满足不同活动的辅助，更具经济优势\cite{liIntegratedApproachRobotic2021}。然而，这对辅助机器人对不同的被辅助对象的适应性提出了更高的要求。一个完整的坐立运动过程通常包含两个不同的阶段，第一个阶段为上身姿态调整，而第二个阶段为下肢发力完成站立。例如，在坐姿起床前，被辅助对象需要调整重心，以便他/她能够成功地站起来。因此，为了保证性能和安全，在机器人运动辅助中，机器人对于人类的意图理解对于实现机器人的自适应运动规划与控制起着重要的作用，因为人类不仅是需要辅助的人，也是自然试图领导机器人运动的主人。其中存在的典型人机交互不确定性因素包括改变站立速度，或因突然改变决定而坐下来等等。目前已有部分研究针对坐立运动辅助的交互意图进行了研究。例如在研究\cite{liIntegratedApproachRobotic2021}中，作者使用了一个长短时记忆网络网络估计了运动时间意图特征，并将其集成在了一个优化控制框架中。此外，也有研究使用最大后验估计对人体运动动态特征进行估计\cite{romanoCoDyCoProjectAchievements2018}。
 
-近年来随着人工智能技术和通用人形机器人的发展，智能化程度更高和约束更少的坐立辅助机器人成为研究的主要方向。例如使用通用的移动机械臂平台进行站立辅助，其相较于定制化设备可以满足不同活动的辅助，更具经济优势\cite{liIntegratedApproachRobotic2021}。然而，这对辅助机器人对不同的被辅助对象的适应性提出了更高的要求。一个完整的坐立运动过程通常包含两个不同的阶段，第一个阶段为上身姿态调整，而第二个阶段为下肢发力完成站立。例如，在坐姿起床前，被辅助对象需要调整重心，以便他/她能够成功地站起来。因此，为了保证性能和安全，在机器人运动辅助中，机器人对于人类的意图理解对于实现机器人的自适应运动规划与控制起着重要的作用，因为人类不仅是需要辅助的人，也是自然试图领导机器人运动的主人。其中存在的典型人机交互不确定性因素包括改变站立速度，或因突然改变决定而坐下来等等。目前已有部分研究针对坐立运动辅助的交互意图进行了研究。例如在研究\cite{liIntegratedApproachRobotic2021}中，作者使用了一个LSTM网络估计了运动时间意图特征，并将其集成在了一个优化控制框架中。此外，也有研究使用最大后验估计（MAP）对人体运动动态特征进行估计\cite{romanoCoDyCoProjectAchievements2018}。
+\begin{figure}[htb]
+    \centering\includegraphics[width=0.8\textwidth]{figures/4-Fig-Intro.pdf}
+    \caption{本章所使用的处理交互不确定方法的概率图模型}
+    \label{fig:4-Intro}
+\end{figure}
 
-完成人由坐到站的时间不同会影响运动过程中的稳定性、肌肉活动、舒适度、能量消耗和运动控制等多个方面。为了确保安全和舒适，站立辅助机器人应当适应使用者由于身体状况和能力不同导致的多样化运动时间。目前关于人类完成站立运动时间意图的在线估计的研究还较少，已有的运动意图估计研究大多基于数据驱动，通过采集大量的运动数据建立意图推断模型，数据利用率较低。然而人类使用不同速度完成站立运动的关节运动轨迹在空间上的拓扑结构是相似的。利用参数化的轨迹模型对人体下肢运动进行建模表征，可以将坐立运动过程中的关节运动时间意图推理看作为一个参数辨识任务，进而设计意图推断方案将会大大提高数据的利用率。第二章已经对于动态运动基元进行了分析和介绍，其中离散型动态运动基元可以通过时间常数对一个标准的点到点轨迹进行缩放，适合用于表征人体坐立动作。因此，本章首先基于离散动态运动基元模型对一组标准的人体坐立运动轨迹进行了参数化表征，在此基础上通过考虑人机交互过程中的不确定性因素对离散动态运动基元模型进行了概率化处理，并基于期望最大化算法就运动时间意图推断方法进行了研究。此外，所提出方法可实现在运动中根据当前积累的观测数据进行连续的意图估计并提供估计结果的置信度量化指标，因此其可集成于一个共享自主系统，实现辅助机器人轨迹的在线优化控制或变刚度阻抗控制。
+完成人由坐到站的时间不同会影响运动过程中的稳定性、肌肉活动、舒适度、能量消耗和运动控制等多个方面。为了确保安全和舒适，站立辅助机器人应当适应使用者由于身体状况和能力不同导致的多样化运动时间。目前关于人类完成站立运动时间意图的在线估计的研究还较少，已有的运动意图估计研究大多基于数据驱动，通过采集大量的运动数据建立意图推断模型，数据利用率较低。然而人类使用不同速度完成站立运动的关节运动轨迹在空间上的拓扑结构是相似的。利用参数化的轨迹模型对人体下肢运动进行建模表征，可以将坐立运动过程中的关节运动时间意图推理看作为一个参数辨识任务，进而设计意图推断方案将会大大提高数据的利用率。第二章已经对于动态运动基元进行了分析和介绍，其中离散型动态运动基元可以通过时间常数对一个标准的点到点轨迹进行缩放，适合用于表征人体坐立动作。因此，本章首先基于离散动态运动基元模型对一组标准的人体坐立运动轨迹进行了参数化建模表征，在此基础上通过考虑人机交互过程中的不确定性因素对离散动态运动基元模型进行了概率化处理，并基于期望最大化算法就运动时间意图推断方法进行了研究。此外，所提出方法可实现在运动中根据当前积累的观测数据进行连续的意图估计并提供估计结果的置信度量化指标，因此其可集成于一个共享自主系统，实现辅助机器人轨迹的在线优化控制或变刚度阻抗控制。
 \section{自适应辅助轨迹优化框架}  
 连续的交互意图估计是站立辅助机器人自适应辅助轨迹优化中的一个重要环节。在本节，就机器人辅助坐立运动过程中的人机耦合动力学，以及轨迹优化方法进行了介绍。
 \subsection{坐立辅助人机耦合动力学模型}  
 作为一种简化的人体生物力学模型，三重倒立摆模型在人机混合系统中得到了广泛的应用。图\ref{fig:4-1}给出了基于三重倒立摆模型的人体坐立运动结构图，本章研究通过保留下肢髋、膝、踝3个关节以及足、小腿、大腿和躯干（上身和头部）4个刚体在矢状面的运动构建并分析了人体在坐立过程中的动力学模型。其中，踝关节、膝关节、髋关节的扭矩被用来控制模型的运动，并且对这三个关节的运动轨迹的观测也被用于意图推断。来自辅助机器人的辅助力作用于躯干，通过欧拉-拉格朗日方法可以推导出站立辅助过程的人机耦合动力学方程如下：
 \begin{equation}
-    \mathbf{M}(\theta) \ddot{\theta}+\mathbf{C}(\theta, \dot{\theta})+\mathbf{G}(\theta)=\tau+\tau_{ext}=\tau_{tot}
+    \mathbf{H}(\theta) \ddot{\theta}+\mathbf{C}(\theta, \dot{\theta})+\mathbf{G}(\theta)=\tau+\tau_{ext}=\tau_{tot}
     \label{eq:4-1}
 \end{equation}
-其中$\mathbf{M}(\theta)\in \mathbb{R}^{3\times 3}$是正定的对称惯性矩阵，$\mathbf{C}(\theta, \dot{\theta})\in \mathbb{R}^3$为科里奥利力和向心力矢量，$\mathbf{G}(\theta)\in \mathbb{R}^5$为重力向量。$\theta \in \mathbb{R}^3$ 代表着踝关节（$\theta_1$）, 膝关节（$\theta_2$）, 髋关节（$\theta_3$）三个关节角度的向量。$\tau \in \mathbb{R}^3$为人体自主运动产生的关节扭矩而$\tau_{ext} \in \mathbb{R}^3$为辅助机器人对被辅助对象在笛卡尔空间施加的外力在关节空间产生的相应扭矩。考虑到外力$F\in \mathbb{R}^m$为施加于人体模型上特定点$k$的一个维度为$m$的外部广义辅助力向量，设与该点相关联的雅可比矩阵为$J_k(\theta)\in \mathbb{R}^{m\times 3}$，则由机器人辅助作用于上身躯干的力量产生的相应关节扭矩为：
+其中$\mathbf{H}(\theta)\in \mathbb{R}^{3\times 3}$是正定的对称惯性矩阵，$\mathbf{C}(\theta, \dot{\theta})\in \mathbb{R}^3$为科里奥利力和向心力矢量，$\mathbf{G}(\theta)\in \mathbb{R}^5$为重力向量。$\theta \in \mathbb{R}^3$ 代表着踝关节（$\theta_1$）, 膝关节（$\theta_2$）, 髋关节（$\theta_3$）三个关节角度的向量。$\tau \in \mathbb{R}^3$为人体自主运动产生的关节扭矩而$\tau_{ext} \in \mathbb{R}^3$为辅助机器人对被辅助对象在笛卡尔空间施加的外力在关节空间产生的相应扭矩。考虑到外力$F\in \mathbb{R}^m$为施加于人体模型上特定点$k$的一个维度为$m$的外部广义辅助力向量，设与该点相关联的雅可比矩阵为$J_k(\theta)\in \mathbb{R}^{m\times 3}$，则由机器人辅助作用于上身躯干的力量产生的相应关节扭矩为：
 \begin{equation}
     \tau_{\text {ext}}=\mathbf{J}_k^T(\theta) F
     \label{eq:4-2}
@@ -58,15 +63,17 @@
 \end{figure}
 
 \section{概率化的动态运动基元（PDMP）} 
-大量的研究使用不同的方法实现人机交互过程中的意图推理，其中目前最为常见的为基于数据驱动模型的方法。该类方法主要通过采集实验数据$\mathbf{D}$构建一个关于意图$I$和当前观测数据$\mathbf{Y}$的后验概率模型$P(\mathbf{I}|\mathbf{Y},\mathbf{D})$。典型的方法包括基于神经网络的深度学习模型和常见的经典机器学习算法。其中，深度学习模型涵盖循环神经网络（RNN）、长短时记忆网络（LSTM）和Transformer；而经典机器学习算法包括决策树、随机森林、支持向量机（SVM）和逻辑回归等。基于数据驱动模型的意图推理方法需要大量的数据来训练模型，因此并不适用于难以获取大量真实数据的物理人机交互领域。因此，针对STS交互意图推理的这一典型场景，本小节设计了一种基于模板匹配的意图推理方法。其主要目标为最大化一个关于由时间缩放参数$\theta$控制的交互元模型$\mathbf{M}$的似然函数$P(\mathbf{Y},\mathbf{I}|\mathbf{M},\theta)$。在意图推理中，通过计算概率模型最大化后验概率进而对用户输入进行分类，以确定其所属的意图类别，并基于迭代优化算法优化参数$\theta$进而确定运动意图。因此，选用合适的模型$\mathbf{M}$表征坐立运动对于提高数据利用率至关重要，在本章研究中通过将离散DMP模型改写为一个带有不确定性项的动态系统形式实现了这一目标。由于DMP模型是一种One-Shot学习方法，因此可以仅依靠单条示教数据轨迹实现意图预测，极大地提高了数据利用率。
+大量的研究使用不同的方法实现人机交互过程中的意图推理，其中目前最为常见的为基于数据驱动模型的方法。该类方法主要通过采集实验数据$\mathbf{D}$构建一个关于意图$I$和当前观测数据$Y$的后验概率模型$P(I|Y,D)$。典型的方法包括基于神经网络的深度学习模型和常见的经典机器学习算法。其中，深度学习模型涵盖循环神经网络（RNN）、长短时记忆网络（LSTM）和Transformer；而经典机器学习算法包括决策树、随机森林、支持向量机（SVM）和逻辑回归等。尽管相关研究在多项任务具有良好的表现，但是在康复辅助机器人的应用开发中，基于数据驱动的方法在难以获取大量人体运动数据的情况下仍然较难实现。此外，由于康复辅助机器人需要保证系统安全性，因此对于相关算法的可解释性也提出了一定要求。
+
+因此，针对STS运动时间预测的这一典型场景，通过考虑人机交互当中的不确定性因素，本小节设计了一种基于随机概率模型匹配的交互意图推理方法。其主要目标为最大化一个关于由时间缩放参数$\tau$控制的交互元模型$M$为先验的似然函数$P(Y,I|M,\tau)$。在意图推理中，通过计算概率模型最大化后验概率进而对用户输入进行分类，以确定其所属的意图类别，并基于迭代优化算法优化参数$\tau$进而确定运动意图。因此，选用合适的模型$M$表征坐立运动对于提高数据利用率至关重要，在本章研究中通过将离散DMP模型改写为一个带有不确定性项的动态系统形式实现了这一目标。由于DMP模型是一种One-Shot学习方法，因此可以仅依靠单条示教数据轨迹实现意图预测，极大地提高了数据利用率。
 
 回顾第二章中在2.3.1节关于DMP模型的介绍，一个标准的离散动态运动基元由以下微分方程定义：
 \begin{equation}
-    \dot{z}=\tau \alpha_z\left(\beta_z(g-y)-z\right)+f(x)
+    \dot{q}=\tau \alpha\left(\beta(g-y)-q\right)+f(x)
     \label{eq:4-7}
 \end{equation}
 \begin{equation}
-    \dot{y}=\tau z 
+    \dot{y}=\tau q 
     \label{eq:4-8}
 \end{equation}
 \begin{equation}
@@ -78,22 +85,22 @@
     \mathscr{L}=\left\{\Theta^{(1)}, \ldots, \Theta^{(l)}, \ldots, \Theta^{(L)}\right\}
     \label{eq:4-10}
 \end{equation}
-其中，$\Theta^{(l)}$代表技能库中的一个运动基元。当系统知道来自传感器感知的部分观测$\mathbf{Y}$是属于哪一种运动基元，通过将权重$w$代入DMP微分方程中的强迫项，则系统中仅剩的两个未知量为时间缩放系数$\tau$和轨迹结束目标状态$g$。在本研究中为了简化计算过程，我们默认在STS任务中的下肢三关节在完全站立时到达最终位置$g$，且关节角为0，因此$g$为一个固定的常数不参与优化计算。由于相关研究表明，不同速度下STS动作的轨迹具有相同特征，因此运动时间意图推理的计算问题变为：优化时间缩放系数$\tau$使得缩放后的轨迹与当前的观测数据匹配度最高，即最小化由DMP微分方程组迭代产生的轨迹$\mathbf{P}$与观测到的轨迹$\mathbf{Y}$之间的距离。
+其中，$\Theta^{(l)}$代表技能库中的一个运动基元模型。当系统知道来自传感器感知的部分观测$\mathbf{Y}$是属于哪一种运动基元，通过将权重$w$代入DMP微分方程中的强迫项，则系统中仅剩的两个未知量为时间缩放系数$\tau$和轨迹结束目标状态$g$。在本研究中为了简化计算过程，我们默认在STS任务中的下肢三关节在完全站立时到达最终位置$g$，且关节角为0，因此$g$为一个固定的常数不参与优化计算。由于相关研究表明，不同速度下STS动作的轨迹具有相同特征，因此运动时间意图推理的计算问题变为：优化时间缩放系数$\tau$使得缩放后的轨迹与当前的观测数据匹配度最高，即最小化由DMP微分方程组迭代产生的轨迹$P$与观测到的轨迹$Y$之间的距离。
 
-为了实现这一目标，研究基于一个线性动态系统的形式重新改写了DMP模型的系统动力方程，并以时间常数$τ$作为其中的一个关键不确定系统参数。因此，对$τ$的估计就变成了一个系统辨识问题，并通过计算概率$p(Y|τ)$度量观测$Y$和模型$P$之间的相似性。首先基于欧拉法对一个单自由度离散DMP模型的线性微分方程进行离散化：
+为了实现这一目标，研究基于一个线性动态系统的形式重新改写了DMP模型的系统动力方程，并以时间常数$τ$作为其中的一个关键不确定系统参数。因此，对$τ$的估计就变成了一个系统辨识问题，并通过计算概率$p(Y,P|τ)$度量观测$Y$和模型状态$P$之间的相似性。首先基于欧拉法对一个单自由度离散DMP模型的线性微分方程进行离散化：
 \begin{equation}
     \begin{aligned}
     x_t & =-\alpha_x x_{t-1} \tau \Delta t+x_{t-1} \\
-    z_t & =\left(\alpha_z\left(\beta_z\left(g-p_{t-1}\right)-z_{t-1}\right)+s f\left(x_{t-1}\right)\right) \tau \Delta t+z_{t-1} \\
-    p_t & =z_{t-1} \tau \Delta t+p_{t-1}
+    q_t & =\left(\alpha\left(\beta\left(g-p_{t-1}\right)-q_{t-1}\right)+s f\left(x_{t-1}\right)\right) \tau \Delta t+q_{t-1} \\
+    p_t & =q_{t-1} \tau \Delta t+p_{t-1}
     \end{aligned}
     \label{eq:4-11}
 \end{equation}
-假设DMP状态转移以及来自传感器的观测不确定性是服从一个高斯分布的，则可以将以上差分方程写成一个带有高斯噪声项的线性系统。设$s_t = [z_t,p_t]^T$为隐状态变量，$y_t$为在$t$时刻的观测量，$\Delta t$离散积分步长，则一个可以编码单自由度轨迹的概率动态运动基元（PDMP）定义如下：
+假设DMP状态转移以及来自传感器的观测不确定性是服从一个高斯分布的，则可以将以上差分方程写成一个带有高斯噪声项的线性系统。设$z_t = [q_t,p_t]^T$为隐状态变量，$y_t$为在$t$时刻的观测量，$\Delta t$离散积分步长，则一个可以编码单自由度轨迹的概率动态运动基元（PDMP）定义如下：
 \begin{equation}
     \begin{aligned}
-    & s_t=\mathbf{A}_1 s_{t-1}+\mathbf{A}_2 s_{t-1} \tau+\mathbf{B} * \tau * u_{t-1}+\varepsilon \\
-    & y_t=\mathbf{C} s_t+\nu
+    & z_t=\mathbf{A}_1 z_{t-1}+\mathbf{A}_2 z_{t-1} \tau+\mathbf{B} * \tau * u_{t-1}+\varepsilon \\
+    & y_t=\mathbf{C} z_t+\nu
     \end{aligned}
     \label{eq:4-12}
 \end{equation}
@@ -103,7 +110,7 @@
     1 & 0 \\
     0 & 1
     \end{array}\right), \mathbf{A}_2=\left(\begin{array}{cc}
-    -\alpha_z \Delta t & -\alpha_z \beta_z \Delta t \\
+    -\alpha \Delta t & -\alpha \beta \Delta t \\
     \Delta t & 0
     \end{array}\right)
     \label{eq:4-13}
@@ -120,7 +127,7 @@
 \end{equation}
 由强迫项组成的输入量$u_t$为：
 \begin{equation}
-    u_t=\alpha_z \beta_z g+ f\left(x_t\right)
+    u_t=\alpha \beta g+ f\left(x_t\right)
     \label{eq:4-15}
 \end{equation}
 
@@ -129,13 +136,13 @@
 期望最大化算法（EM）是一种处理含有隐变量或缺失数据概率模型参数估计的迭代优化算法。它通过交替执行求期望步骤（E步）和最大化步骤（M步）将复杂问题拆解成简单子问题，实现极大似然估计。尽管EM算法的收敛性只能保证找到局部最大值，但它仍被广泛用于处理数据缺失及众多机器学习参数估计问题，例如高斯混合模型和隐马尔可夫模型。其实现步骤如下：
 
 \begin{enumerate}
-\item 问题定义：给定观测数据$\mathbf{Y}$和由模型控制的隐变量$\mathbf{S}$，期望最大化的目标是找到使观测数据出现概率最大的模型参数$θ$，即最大化似然函数$p(\mathbf{Y}|\mathbf{S}, θ)$。
+\item 问题定义：给定观测数据$\mathbf{Y}$和由模型控制的隐变量$\mathbf{Z}$，期望最大化的目标是找到使观测数据出现概率最大的模型参数$θ$，即最大化似然函数$p(\mathbf{Y}|\mathbf{Z}, θ)$。
 
 \item 初始化：随机选择一组初始参数$θ(0)$，作为迭代的起点。
 
-\item E步：在给定当前参数$θ(k)$的情况下，计算隐变量$\mathbf{S}$的条件概率分布$p(\mathbf{S}|\mathbf{Y}, θ(k))$。这一步也被称为“求期望”。
+\item E步：在给定当前参数$θ(k)$的情况下，计算隐变量$\mathbf{Z}$的条件概率分布$p(\mathbf{Z}|\mathbf{Y}, θ(k))$。这一步也被称为“求期望”。
 
-\item M步（Maximization-step）：使用E步中计算出的条件概率分布$p(\mathbf{S}|\mathbf{Y}, θ(k))$来最大化Q函数：$Q(θ|θ(k))$ = $\sum p(\mathbf{S}|\mathbf{Y}, θ(k)) * log(p(\mathbf{Y}, \mathbf{S}|θ))$。这一步也被称为``求极大''。求解Q函数的导数并令其为0，可以得到新的参数$θ(k+1)$。
+\item M步（Maximization-step）：使用E步中计算出的条件概率分布$p(\mathbf{Z}|\mathbf{Y}, θ(k))$来最大化Q函数：$Q(θ|θ(k))$ = $\sum p(\mathbf{Z}|\mathbf{Y}, θ(k)) * log(p(\mathbf{Y}, \mathbf{Z}|θ))$。这一步也被称为``求极大''。求解Q函数的导数并令其为0，可以得到新的参数$θ(k+1)$。
 
 \item 收敛判断：检查新参数$θ(k+1)$与当前参数$θ(k)$之间的差异是否小于预设的阈值，或者达到最大迭代次数。如果满足收敛条件，则停止迭代；否则，返回第3步继续迭代。
 \end{enumerate}
@@ -146,57 +153,57 @@
     \theta_{\text {all }}=\left\{\mathbf{w}, \tau, g, \mathbf{A}_1, \mathbf{A}_2, \mathbf{B}, \mathbf{C}, \mathbf{Q}, \mathbf{R}\right\}
     \label{eq:4-16}
 \end{equation}
-其中除了时间缩放系数$\tau$是未知的，其余的参数在本任务中都已知。在应用中，当获得关于参与者下肢的关节角度观测$\mathbf{Y}=\{ y_t\}_1^T$后，以及隐状态$\mathbf{S}=\{s_t\}_1^T$，可以定义联合概率函数：
+其中除了时间缩放系数$\tau$是未知的，其余的参数在本任务中都已知。在应用中，当获得关于参与者下肢的关节角度观测$\mathbf{Y}=\{ y_t\}_1^T$后，以及隐状态$\mathbf{Z}=\{z_t\}_1^T$，可以定义联合概率函数：
 \begin{equation}
-    p(\mathbf{Y}, \mathbf{S} \mid \tau) = 
-    p(\mathbf{Y} \mid  \mathbf{S}, \tau) \cdot p(\mathbf{S} \mid  \tau)
+    p(\mathbf{Y}, \mathbf{Z} \mid \tau) = 
+    p(\mathbf{Y} \mid  \mathbf{Z}, \tau) \cdot p(\mathbf{Z} \mid  \tau)
     \label{eq:4-17}
 \end{equation}
-对以上联合概率取对数后，由于通过感知系统无法直接获得关于隐状态$\mathbf{S}$的观测，因此需要通过对隐状态求取期望消除其随机性，并在最大化步骤中使得优化目标函数Q的值不断增大直到变化速度小于所设定的阈值或达到优化迭代次数上限。最后，可以获得估计参数$\tau$的优化目标函数为：
+对以上联合概率取对数后，由于通过感知系统无法直接获得关于隐状态$\mathbf{Z}$的观测，因此需要通过对隐状态求取期望消除其随机性，并在最大化步骤中使得优化目标函数Q的值不断增大直到变化速度小于所设定的阈值或达到优化迭代次数上限。最后，可以获得估计参数$\tau$的优化目标函数为：
 \begin{equation}
-    Q\left(\boldsymbol{\tau}, \boldsymbol{\tau}_{old}\right)=\mathbb{E}_{\mathbf{S} \mid \tau^{old}}[\ln p(\mathbf{Y}, \mathbf{S} \mid \tau)]
+    Q\left(\boldsymbol{\tau}, \boldsymbol{\tau}_{old}\right)=\mathbb{E}_{\mathbf{Z} \mid \tau^{old}}[\ln p(\mathbf{Y}, \mathbf{Z} \mid \tau)]
     \label{eq:4-18}
 \end{equation}
 其中，$\tau_{old}$为上次迭代得到的历史参数，由于假设了系统不确定性和观测不确定性是服从高斯分布的，且编码动作的PDMP模型是线性的，因此可以得到待辨识参数$\tau$的解析迭代求解方法，其推导过程如下：
 
-在本研究中，离散后的三自由度PDMP模型状态$s_t\in \mathbb{R}^{6}$在每一个时刻都服从以$\mathbf{A_1}s_{t-1}+\mathbf{A_2}s_{t-1}\tau+\mathbf{B}u_{t-1}\tau$为期望，以$\mathbf{R} \in \mathbb{R}^{6\times 6}$为协方差矩阵的多维高斯分布：
+在本研究中，离散后的三自由度PDMP模型状态$z_t\in \mathbb{R}^{6}$在每一个时刻都服从以$\mathbf{A_1}z_{t-1}+\mathbf{A_2}z_{t-1}\tau+\mathbf{B}u_{t-1}\tau$为期望，以$\mathbf{R} \in \mathbb{R}^{6\times 6}$为协方差矩阵的多维高斯分布：
 \begin{equation}
-  s_t \sim \mathcal N(\mathbf{A_1}s_{t-1}+\mathbf{A_2}s_{t-1}\tau+\mathbf{B}u_{t-1}\tau,\mathbf{R})
+  z_t \sim \mathcal N(\mathbf{A_1}z_{t-1}+\mathbf{A_2}z_{t-1}\tau+\mathbf{B}u_{t-1}\tau,\mathbf{R})
   \label{eq:4-19}
 \end{equation}
 
-设在$T_{obs}$时刻的获得的观测数据为$\mathbf{Y}=\{y_1,y_2,...,y_{T_{obs}}\}$，对应的隐状态为$\mathbf S = \{s_1,s_2,...,s_{T_{obs}}\}$，对式\ref{eq:4-21}两边同时取对数，当其满足马尔科夫齐次性假设和马尔科夫观测独立性假设时，可以得到以下求和项：
+设在$T_{obs}$时刻的获得的观测数据为$\mathbf{Y}=\{y_1,y_2,...,y_{T_{obs}}\}$，对应的隐状态为$\mathbf Z = \{z_1,z_2,...,z_{T_{obs}}\}$，对式\ref{eq:4-21}两边同时取对数，当其满足马尔科夫齐次性假设和马尔科夫观测独立性假设时，可以得到以下求和项：
 \begin{equation}
     \begin{aligned}
-    \ln p(\mathbf{Y}, \mathbf{S} \mid \tau)= & \sum_{t=1}^T \ln p\left(y_t \mid s_t, \mathbf{C}, \mathbf{R}\right)+\ln p\left(s_1\right) \\
-    & +\sum_{t=2}^T \ln p\left(s_t \mid s_{t-1}, \mathbf{A}_1, \mathbf{A}_2, \mathbf{B}, u_{t-1}, \mathbf{Q}, \tau, g\right)
+    \ln p(\mathbf{Y}, \mathbf{Z} \mid \tau)= & \sum_{t=1}^T \ln p\left(y_t \mid z_t, \mathbf{C}, \mathbf{R}\right)+\ln p\left(z_1\right) \\
+    & +\sum_{t=2}^T \ln p\left(z_t \mid z_{t-1}, \mathbf{A}_1, \mathbf{A}_2, \mathbf{B}, u_{t-1}, \mathbf{Q}, \tau, g\right)
     \end{aligned}
     \label{eq:4-20}
 \end{equation}
-其中式中第一个求和项为状态观测项，第二项为常数，第三项为状态转移概率求和项。由于存在隐变量$s_t$，基于旧的时间缩放系数$\tau_{old}$对隐状态求期望，代入式\ref{eq:4-18}中的优化目标函数$ Q\left(\tau, \tau^{old}\right)$函数并展开：
+其中式中第一个求和项为状态观测项，第二项为常数，第三项为状态转移概率求和项。由于存在隐变量$z_t$，基于旧的时间缩放系数$\tau_{old}$对隐状态求期望，代入式\ref{eq:4-18}中的优化目标函数$ Q\left(\tau, \tau^{old}\right)$函数并展开：
 \begin{equation}
 \begin{aligned}
     Q\left(\tau, \tau^{old}\right)
-    &=\mathbb{E}_{s \mid \tau^{old}}\left[\ln p(\mathbf{Y}, s \mid \tau)\right]\\
-    & =\mathbb{E}_{s \mid \tau^{old}}\left[\sum_{t=1}^T \ln p\left(y_t \mid s_t, \tau\right)+\ln p\left(s_1\right)+\sum_{t=2}^T \ln p\left(s_t \mid s_{t-1}, \tau\right)\right] \\
-    & =\mathbb{E}_{s \mid \tau^{old}}\left[\sum_{t=2}^T \ln p\left(s_t \mid s_{t-1}, \tau\right)\right] + \eta 
+    &=\mathbb{E}_{z \mid \tau^{old}}\left[\ln p(\mathbf{Y}, \mathbf{Z} \mid \tau)\right]\\
+    & =\mathbb{E}_{z \mid \tau^{old}}\left[\sum_{t=1}^T \ln p\left(y_t \mid z_t, \tau\right)+\ln p\left(z_1\right)+\sum_{t=2}^T \ln p\left(z_t \mid z_{t-1}, \tau\right)\right] \\
+    & =\mathbb{E}_{z \mid \tau^{old}}\left[\sum_{t=2}^T \ln p\left(z_t \mid z_{t-1}, \tau\right)\right] + \eta 
 \end{aligned}
 \label{eq:4-21}
 \end{equation}
-其中$\eta=\mathbb{E}_{s \mid \tau^{old}} \left[\sum_{t=1}^T \ln p\left(y_t \mid s_t, \tau\right) + \ln p\left(s_1\right)\right]$为一个与隐状态变量$s$无关的常数。根据之前对于PDMP系统的状态转移的假设，状态转移概率服从一个多维高斯分布，因此关于状态转移条件概率的概率密度函数表达式为：
+其中$\eta=\mathbb{E}_{z \mid \tau^{old}} \left[\sum_{t=1}^T \ln p\left(y_t \mid z_t, \tau\right) + \ln p\left(z_1\right)\right]$为一个与隐状态变量$z$无关的常数。根据之前对于PDMP系统的状态转移的假设，状态转移概率服从一个多维高斯分布，因此关于状态转移条件概率的概率密度函数表达式为：
 \begin{equation}
-    p\left(s_t \mid s_{t-1}, \tau\right)=\frac{1}{(2 \pi)^{\frac{n}{2}}|\mathbf{R}|^{\frac{1}{2}}} \cdot e^{-\frac{1}{2}\left[\left(s_t-\mu\right)^T \mathbf{R}^{-1}\left(s_t-\mu\right)\right]}
+    p\left(z_t \mid z_{t-1}, \tau\right)=\frac{1}{(2 \pi)^{\frac{n}{2}}|\mathbf{R}|^{\frac{1}{2}}} \cdot e^{-\frac{1}{2}\left[\left(z_t-\mu\right)^T \mathbf{R}^{-1}\left(z_t-\mu\right)\right]}
     \label{eq:4-22}
 \end{equation}
 其中$n=6$，为多维高斯分布的维度，在本研究中等于观测的关节角度数量的二倍，将上式取对数后：
 \begin{equation}
-    \ln p\left(s_t \mid s_{t-1}, \tau\right)=-\pi^{-\frac{n}{2}}\ln\mathbf{|R|}-\frac{1}{2}\left[\left(s_t-\mu\right)^T \mathbf{R}^{-1}\left(s_t-\mu\right)\right]
+    \ln p\left(z_t \mid z_{t-1}, \tau\right)=-\pi^{-\frac{n}{2}}\ln\mathbf{|R|}-\frac{1}{2}\left[\left(z_t-\mu\right)^T \mathbf{R}^{-1}\left(z_t-\mu\right)\right]
     \label{eq:4-23}
 \end{equation}
 则迭代优化目标函数为：
 \begin{equation}
     Q\left(\tau, \tau^{old}\right)
-    =\mathbb{E}_{s \mid \tau^{old}}\left[\sum_{t=2}^T-\pi^{-\frac{n}{2}}\ln\mathbf{|R|}-\frac{1}{2}\left(s_t-\mu\right)^T \mathbf{R}^{-1}\left(s_t-\mu\right)\right] + \eta
+    =\mathbb{E}_{z \mid \tau^{old}}\left[\sum_{t=2}^T-\pi^{-\frac{n}{2}}\ln\mathbf{|R|}-\frac{1}{2}\left(z_t-\mu\right)^T \mathbf{R}^{-1}\left(z_t-\mu\right)\right] + \eta
     \label{eq:4-24}
 \end{equation}
 对上式求关于时间缩放系数$\tau$的导数，首先使用迹技巧求优化目标函数的微分：
@@ -208,39 +215,39 @@
 \begin{equation}
     \begin{aligned}
     d Q\left(\tau, \tau^{old}\right)
-    & =\operatorname{tr}\left[\mathbb{E}_{s \mid \tau^{old}}\left[\sum_{t=2}^T-\frac{1}{2} \cdot 2 \left(\mathbf{R}^{-1}\left(s_t-\mu\right)\right)^T \cdot d \mu\right]\right] \\
-    & =\mathbb{E}_{s \mid \tau^{old}}\left[\operatorname{tr}\left[\sum_{t=2}^T-\left(s_t-\mu\right)^T \left(\mathbf{R}^{-1}\right)^T \cdot d \mu\right]\right] \\
-    & =\mathbb{E}_{s \mid \tau^{old}}\left[\operatorname{tr}\left[\sum_{t=2}^T-\left(s_t-\mu\right)^T \left(\mathbf{R}^{-1}\right)^T \cdot d\left(\mathbf{A_1} s_{t-1}+\mathbf{A_2} s_{t-1} \tau+\mathbf{B} u_{t-1} \tau\right)\right]\right] \\
-    & =\mathbb{E}_{s \mid \tau^{old}}\left[\operatorname{tr}\left[\sum_{t=2}^T-\left(s_t-\mu\right)^T \left(\mathbf{R}^{-1}\right)^T\left(\mathbf{A_2}s_{t-1} d \tau+\mathbf{B} u_{t-1} d \tau\right)\right]\right] \\
-    & =\mathbb{E}_{s \mid \tau^{old}}\left[\operatorname{tr}\left[\sum_{t=2}^T-\left(s_t-\mu\right)^T \left(\mathbf{R}^{-1}\right)^T(\mathbf{A_2} s_{t-1}+\mathbf{B} u_{t-1}) d \tau \right]\right]
+    & =\operatorname{tr}\left[\mathbb{E}_{z \mid \tau^{old}}\left[\sum_{t=2}^T-\frac{1}{2} \cdot 2 \left(\mathbf{R}^{-1}\left(z_t-\mu\right)\right)^T \cdot d \mu\right]\right] \\
+    & =\mathbb{E}_{z \mid \tau^{old}}\left[\operatorname{tr}\left[\sum_{t=2}^T-\left(z_t-\mu\right)^T \left(\mathbf{R}^{-1}\right)^T \cdot d \mu\right]\right] \\
+    & =\mathbb{E}_{z \mid \tau^{old}}\left[\operatorname{tr}\left[\sum_{t=2}^T-\left(z_t-\mu\right)^T \left(\mathbf{R}^{-1}\right)^T \cdot d\left(\mathbf{A_1} z_{t-1}+\mathbf{A_2} z_{t-1} \tau+\mathbf{B} u_{t-1} \tau\right)\right]\right] \\
+    & =\mathbb{E}_{z \mid \tau^{old}}\left[\operatorname{tr}\left[\sum_{t=2}^T-\left(z_t-\mu\right)^T \left(\mathbf{R}^{-1}\right)^T\left(\mathbf{A_2}z_{t-1} d \tau+\mathbf{B} u_{t-1} d \tau\right)\right]\right] \\
+    & =\mathbb{E}_{z \mid \tau^{old}}\left[\operatorname{tr}\left[\sum_{t=2}^T-\left(z_t-\mu\right)^T \left(\mathbf{R}^{-1}\right)^T(\mathbf{A_2} z_{t-1}+\mathbf{B} u_{t-1}) d \tau \right]\right]
     \end{aligned}
     \label{eq:4-26}
 \end{equation}
 则优化目标函数$Q$关于时间缩放系数$\tau$的导数为：
 \begin{equation}
-    \frac{d Q}{d \tau}=\mathbb{E}_{s \mid \tau^{old}}\left[\sum_{t=2}^T -\left(s_t-\mu\right)\left(\mathbf{A_2} s_{t-1}+\mathbf{B} u_{t-1}\right)^T\mathbf{R}^{-1}\right]
+    \frac{d Q}{d \tau}=\mathbb{E}_{z \mid \tau^{old}}\left[\sum_{t=2}^T -\left(z_t-\mu\right)\left(\mathbf{A_2} z_{t-1}+\mathbf{B} u_{t-1}\right)^T\mathbf{R}^{-1}\right]
     \label{eq:4-27}
 \end{equation}
 令上式的导数为0：
 \begin{equation}
-    \mathbb{E}_{s \mid \tau^{old}}\left[\sum_{t=2}^T -\left(s_t-\mu\right)\left(\mathbf{A_2} s_{t-1}+\mathbf{B} u_{t-1}\right)^T\mathbf{R}^{-1}\right] = 0
+    \mathbb{E}_{z \mid \tau^{old}}\left[\sum_{t=2}^T -\left(z_t-\mu\right)\left(\mathbf{A_2} z_{t-1}+\mathbf{B} u_{t-1}\right)^T\mathbf{R}^{-1}\right] = 0
     \label{eq:4-28}
 \end{equation}
 由于协方差矩阵$\mathbf{R}$为实对称矩阵，则：
 \begin{equation}
-    \mathbb{E}_{s \mid \tau^{old}}\left[\sum_{t=2}^T \left(s_t-\mu\right)\left(s_{t-1}^T\mathbf{A_2}^T +u_{t-1}^T\mathbf{B}^T \right)\right] = 0
+    \mathbb{E}_{z \mid \tau^{old}}\left[\sum_{t=2}^T \left(z_t-\mu\right)\left(z_{t-1}^T\mathbf{A_2}^T +u_{t-1}^T\mathbf{B}^T \right)\right] = 0
     \label{eq:4-29}
 \end{equation}
 将式\ref{eq:4-19}中的期望代入上式$\mu$：
 \begin{equation}
-    \mathbb{E}_{s \mid \tau^{old}}\left[\sum_{t=2}^T \left(s_t-\mathbf{A_1}s_{t-1}-\mathbf{A_2}s_{t-1}\tau-\mathbf{B}u_{t-1}\tau \right)\left(s_{t-1}^T\mathbf{A_2}^T +u_{t-1}^T\mathbf{B}^T \right)\right] = 0
+    \mathbb{E}_{z \mid \tau^{old}}\left[\sum_{t=2}^T \left(z_t-\mathbf{A_1}z_{t-1}-\mathbf{A_2}z_{t-1}\tau-\mathbf{B}u_{t-1}\tau \right)\left(z_{t-1}^T\mathbf{A_2}^T +u_{t-1}^T\mathbf{B}^T \right)\right] = 0
     \label{eq:4-30}
 \end{equation}
 展开上式：
 \begin{equation}
     \begin{gathered}
-    \sum_{t=2}^T \mathbb{E}_{s \mid \tau^{old}}\left[s_ts_{t-1}^T\mathbf{A_2}^T + s_tu_{t-1}^T\mathbf{B}^T -\mathbf{A_1}s_{t-1}s_{t-1}^T\mathbf{A_2}^T - \mathbf{A_1}s_{t-1}u_{t-1}^T\mathbf{B}^T \right. \\ 
-    \left. - \mathbf{A_2}s_{t-1}s_{t-1}^T\mathbf{A_2}^T\tau -\mathbf{A_2}s_{t-1}u_{t-1}^T\mathbf{B}^T\tau - \mathbf{B}u_{t-1}s_{t-1}^T\mathbf{A_2}^T\tau - \mathbf{B}u_{t-1}u_{t-1}^T\mathbf{B}^T\tau\right] = 0
+    \sum_{t=2}^T \mathbb{E}_{z \mid \tau^{old}}\left[z_tz_{t-1}^T\mathbf{A_2}^T + z_tu_{t-1}^T\mathbf{B}^T -\mathbf{A_1}z_{t-1}z_{t-1}^T\mathbf{A_2}^T - \mathbf{A_1}z_{t-1}u_{t-1}^T\mathbf{B}^T \right. \\ 
+    \left. - \mathbf{A_2}z_{t-1}z_{t-1}^T\mathbf{A_2}^T\tau -\mathbf{A_2}z_{t-1}u_{t-1}^T\mathbf{B}^T\tau - \mathbf{B}u_{t-1}z_{t-1}^T\mathbf{A_2}^T\tau - \mathbf{B}u_{t-1}u_{t-1}^T\mathbf{B}^T\tau\right] = 0
     \end{gathered}
     \label{eq:4-31}
 \end{equation}
@@ -254,7 +261,7 @@
   
     \For{i=1:Epoch}{
       给定初值$
-      \hat{s}_{f, 0}^{+}=\mathbb{E}\left[s_0\right]$和$\mathbf{V}_{f, 0}=\mathbb{E}\left[\left(s_0-\hat{s}_{f, 0}^{+}\right)\left(s_0-\hat{s}_{f, 0}^{+}\right)^T\right]
+      \hat{z}_{f, 0}^{+}=\mathbb{E}\left[z_0\right]$和$\mathbf{V}_{f, 0}=\mathbb{E}\left[\left(z_0-\hat{z}_{f, 0}^{+}\right)\left(z_0-\hat{z}_{f, 0}^{+}\right)^T\right]
       $\;
       进行前向卡尔曼滤波迭代计算\;
       \For{t=1:$T_{obs}$}
@@ -262,23 +269,23 @@
         $\begin{aligned}
             &\mathbf{P}_{f, t}=\mathbf{A} \mathbf{V}_{f, t-1} \mathbf{A}+\mathbf{Q} \\
             &\mathbf{K}=\mathbf{P}_{f, t} \mathbf{C}^T\left(\mathbf{C P}_{f, t} \mathbf{C}^T+\mathbf{R}\right)^{-1} \\
-            &\hat{s}_{f, t}^{-}=\mathbf{A} \hat{s}_{f, t-1}^{+}+\mathbf{B} u_{t-1} \\
-            & \hat{s}_{f, t}^{+}=\hat{s}_{f, t}^{-}+\mathbf{K}\left(y_t-\mathbf{C} \hat{s}_{f, t}^{-}\right) \\
+            &\hat{z}_{f, t}^{-}=\mathbf{A} \hat{z}_{f, t-1}^{+}+\mathbf{B} u_{t-1} \\
+            & \hat{z}_{f, t}^{+}=\hat{z}_{f, t}^{-}+\mathbf{K}\left(y_t-\mathbf{C} \hat{z}_{f, t}^{-}\right) \\
             &\mathbf{V}_{f, t}=(\mathbf{I}-\mathbf{K} \mathbf{C}) \mathbf{P}_{f, t} \\
-            &c_t=\mathscr{N}\left(y_t \mid \mathbf{C} \hat{s}_{f t}^{-}, \mathbf{C} \mathbf{P}_{f, t} \mathbf{C}^T+\mathbf{R}\right) \\
+            &c_t=\mathscr{N}\left(y_t \mid \mathbf{C} \hat{z}_{f t}^{-}, \mathbf{C} \mathbf{P}_{f, t} \mathbf{C}^T+\mathbf{R}\right) \\
             &l_t= \text{ln}c_t + l_{t-1}
         \end{aligned}$
       }{
         进行反向卡尔曼平滑计算必要的期望项\;
         \For{t=$T_{obs}-1$:1}
         {
-            $\begin{aligned} & \mathbf{J}_t=\mathbf{V}_{f, t} \mathbf{A}\left(\mathbf{P}_{f, t+1}\right)^{-1} \\ & \mathbf{V}_t=\mathbf{V}_{f, t}-\mathbf{J}_t\left(\mathbf{P}_{f, t+1}-\mathbf{V}_{t+1}\right) \mathbf{J}_t^T \\ & \hat{s}_t=\hat{s}_{f, t}^{+}+\mathbf{J}_t\left(\hat{s}_{t+1}-\hat{s}_{f, t+1}^{-}\right) \\ & \mathbb{E}\left[s_t\right]=\hat{s}_t \\ & \mathbb{E}\left[s_t s_t^T\right]=\mathbf{V}_t+\hat{s}_t \hat{s}_t^T \\ & \mathbb{E}\left[s_t s_{t-1}^T\right]=\mathbf{J}_{t-1} \mathbf{V}_t+\hat{s}_t \hat{s}_{t-1}\end{aligned}$
+            $\begin{aligned} & \mathbf{J}_t=\mathbf{V}_{f, t} \mathbf{A}\left(\mathbf{P}_{f, t+1}\right)^{-1} \\ & \mathbf{V}_t=\mathbf{V}_{f, t}-\mathbf{J}_t\left(\mathbf{P}_{f, t+1}-\mathbf{V}_{t+1}\right) \mathbf{J}_t^T \\ & \hat{z}_t=\hat{z}_{f, t}^{+}+\mathbf{J}_t\left(\hat{z}_{t+1}-\hat{z}_{f, t+1}^{-}\right) \\ & \mathbb{E}\left[z_t\right]=\hat{z}_t \\ & \mathbb{E}\left[z_t z_t^T\right]=\mathbf{V}_t+\hat{z}_t \hat{z}_t^T \\ & \mathbb{E}\left[z_t z_{t-1}^T\right]=\mathbf{J}_{t-1} \mathbf{V}_t+\hat{z}_t \hat{z}_{t-1}\end{aligned}$
         }
         \For{t=2:$T_{obs}$}
         {
-            $\begin{gathered}\Sigma_1=\sum_{t=2}^T \operatorname{tr}\left(\mathbb{E}\left[s_t s_{t-1}^T\right] \mathbf{A}_2^T\right)+\operatorname{tr}\left(\mathbb{E}\left[s_t\right] u_{t-1}^T \mathbf{B}^T\right)- \operatorname{tr}\left(\mathbb{E}\left[s_{t-1} s_{t-1}^T\right] \mathbf{A}_1 \mathbf{A}_2^T\right) \\ - \operatorname{tr}\left(\mathbb{E}\left[s_{t-1}\right] \mathbf{A}_1 u_{t-1}^T \mathbf{B}^T\right)\end{gathered}$
+            $\begin{gathered}\Sigma_1=\sum_{t=2}^T \operatorname{tr}\left(\mathbb{E}\left[z_t z_{t-1}^T\right] \mathbf{A}_2^T\right)+\operatorname{tr}\left(\mathbb{E}\left[z_t\right] u_{t-1}^T \mathbf{B}^T\right)- \operatorname{tr}\left(\mathbb{E}\left[z_{t-1} z_{t-1}^T\right] \mathbf{A}_1 \mathbf{A}_2^T\right) \\ - \operatorname{tr}\left(\mathbb{E}\left[z_{t-1}\right] \mathbf{A}_1 u_{t-1}^T \mathbf{B}^T\right)\end{gathered}$
 
-            $\Sigma_2=\sum_{t=2}^T \operatorname{tr}\left(\mathbb{E}\left[s_{t-1} s_{t-1}^T\right] \mathbf{A}_2 \mathbf{A}_2{ }^T\right)+2 \operatorname{tr}\left(\mathbf{B} u_{t-1} \mathbb{E}\left[s_{t-1}^T\right] \mathbf{A}_2{ }^T\right)+\operatorname{tr}\left(\mathbf{B} u_{t-1} u_{t-1}^T \mathbf{B}^T\right)$
+            $\Sigma_2=\sum_{t=2}^T \operatorname{tr}\left(\mathbb{E}\left[z_{t-1} z_{t-1}^T\right] \mathbf{A}_2 \mathbf{A}_2{ }^T\right)+2 \operatorname{tr}\left(\mathbf{B} u_{t-1} \mathbb{E}\left[z_{t-1}^T\right] \mathbf{A}_2{ }^T\right)+\operatorname{tr}\left(\mathbf{B} u_{t-1} u_{t-1}^T \mathbf{B}^T\right)$
         }
         $\tau=\Sigma_1 / \Sigma_2$ \;
       }
@@ -289,8 +296,8 @@
 整理可得：
 \begin{equation}
     \begin{gathered}
-    \sum_{t=2}^T \mathbb{E}_{s \mid \tau^{old}}\left[s_ts_{t-1}^T\mathbf{A_2}^T + s_tu_{t-1}^T\mathbf{B}^T -\mathbf{A_1}s_{t-1}s_{t-1}^T\mathbf{A_2}^T - \mathbf{A_1}s_{t-1}u_{t-1}^T\mathbf{B}^T\right] = \\ 
-    \sum_{t=2}^T \mathbb{E}_{s \mid \tau^{old}}\left[\mathbf{A_2}s_{t-1}s_{t-1}^T\mathbf{A_2}^T\tau +\mathbf{A_2}s_{t-1}u_{t-1}^T\mathbf{B}^T\tau + \mathbf{B}u_{t-1}s_{t-1}^T\mathbf{A_2}^T\tau +\mathbf{B}u_{t-1}u_{t-1}^T\mathbf{B}^T\tau\right]
+    \sum_{t=2}^T \mathbb{E}_{z \mid \tau^{old}}\left[z_tz_{t-1}^T\mathbf{A_2}^T + z_tu_{t-1}^T\mathbf{B}^T -\mathbf{A_1}z_{t-1}z_{t-1}^T\mathbf{A_2}^T - \mathbf{A_1}z_{t-1}u_{t-1}^T\mathbf{B}^T\right] = \\ 
+    \sum_{t=2}^T \mathbb{E}_{z \mid \tau^{old}}\left[\mathbf{A_2}z_{t-1}z_{t-1}^T\mathbf{A_2}^T\tau +\mathbf{A_2}z_{t-1}u_{t-1}^T\mathbf{B}^T\tau + \mathbf{B}u_{t-1}z_{t-1}^T\mathbf{A_2}^T\tau +\mathbf{B}u_{t-1}u_{t-1}^T\mathbf{B}^T\tau\right]
     \end{gathered}
     \label{eq:4-32}
 \end{equation}
@@ -302,21 +309,21 @@
 其中：
 \begin{equation}
     \begin{gathered}
-    \Sigma_1  = \sum_{t=2}^T \operatorname{tr}\left(\mathbb{E}\left[s_ts_{t-1}^T\right]\mathbf{A_2}^T\right) + \operatorname{tr}\left(\mathbb{E}\left[s_t\right]u_{t-1}^T\mathbf{B}^T\right) \\- \operatorname{tr}\left(\mathbb{E}\left[s_{t-1}s_{t-1}^T\right]\mathbf{A_1}\mathbf{A_2}^T\right) - \operatorname{tr}\left(\mathbb{E}\left[s_{t-1}\right]\mathbf{A_1}u_{t-1}^T\mathbf{B}^T\right) \\
+    \Sigma_1  = \sum_{t=2}^T \operatorname{tr}\left(\mathbb{E}\left[z_tz_{t-1}^T\right]\mathbf{A_2}^T\right) + \operatorname{tr}\left(\mathbb{E}\left[z_t\right]u_{t-1}^T\mathbf{B}^T\right) \\- \operatorname{tr}\left(\mathbb{E}\left[z_{t-1}z_{t-1}^T\right]\mathbf{A_1}\mathbf{A_2}^T\right) - \operatorname{tr}\left(\mathbb{E}\left[z_{t-1}\right]\mathbf{A_1}u_{t-1}^T\mathbf{B}^T\right) \\
     \end{gathered}
     \label{eq:4-34}
 \end{equation}
 \begin{equation}
-    \Sigma_2  = \sum_{t=2}^T \operatorname{tr}\left(\mathbb{E}\left[s_{t-1}s_{t-1}^T\right]\mathbf{A_2}\mathbf{A_2}^T\right) + 2 \operatorname{tr}\left(\mathbf{B}u_{t-1}\mathbb{E}\left[s_{t-1}^T\right]\mathbf{A_2}^T\right) +\operatorname{tr}\left(\mathbf{B}u_{t-1}u_{t-1}^T\mathbf{B}^T\right)
+    \Sigma_2  = \sum_{t=2}^T \operatorname{tr}\left(\mathbb{E}\left[z_{t-1}z_{t-1}^T\right]\mathbf{A_2}\mathbf{A_2}^T\right) + 2 \operatorname{tr}\left(\mathbf{B}u_{t-1}\mathbb{E}\left[z_{t-1}^T\right]\mathbf{A_2}^T\right) +\operatorname{tr}\left(\mathbf{B}u_{t-1}u_{t-1}^T\mathbf{B}^T\right)
     \label{eq:4-35}
 \end{equation}
 
 在$\tau$的迭代更新公式中，有三个期望是未知的，可以使用卡尔曼平滑方法进行计算\cite{bishopPatternRecognitionMachine2006}，其计算方法如下：
 \begin{equation}
     \begin{aligned}
-    \mathbb{E}\left[s_{t-1}\right] & =\hat{s}_{t-1} \\
-    \mathbb{E}\left[s_{t-1} s_{t-1}^T\right] & =\operatorname{cov}\left(s_{t-1}, s_{t-1}\right)+\hat{s}_{t-1} \hat{s}_{t-1}^T \\
-    \mathbb{E}\left[s_t s_{t-1}^T\right] & =\operatorname{cov}\left(s_t, s_{t-1}\right)+\hat{s}_t \hat{s}_{t-1}^T .
+    \mathbb{E}\left[z_{t-1}\right] & =\hat{z}_{t-1} \\
+    \mathbb{E}\left[z_{t-1} z_{t-1}^T\right] & =\operatorname{cov}\left(z_{t-1}, z_{t-1}\right)+\hat{z}_{t-1} \hat{z}_{t-1}^T \\
+    \mathbb{E}\left[z_t z_{t-1}^T\right] & =\operatorname{cov}\left(z_t, z_{t-1}\right)+\hat{z}_t \hat{z}_{t-1}^T .
     \end{aligned}
     \label{eq:4-36}
 \end{equation}
@@ -358,7 +365,7 @@
         计算坐立运动时间估计值：$\hat T = f_m(\tau_m)$\;
         计算EM迭代过程中参数$\tau$的方差作为估计置信度水平量化指标：$b = 1 - var([\tau_m^1,\tau_m^1,...,\tau_m^{10}]) * 100$\;
     }
-    \caption{基于先验知识库的人体坐立运动时间意图估计}
+    \caption{基于先验模板库的人体坐立运动时间意图估计}
     \label{algo:4-2}
 \end{algorithm}
 
@@ -368,7 +375,7 @@
 \subsection{实验环境设置} 
 在本研究中，实验招募了三名参与者（平均身高175±5厘米，体重75±10公斤）参与实验。实验环境配备了一套由OptiTrack公司生产的高精度光学动作捕捉系统。实验中我们设置了一个高度为50厘米的座椅，并在其下方放置了一块由AMTI公司制造的测力板，用以精确检测参与者的起身事件。根据光学运动捕捉系统中的Helen Hayes反光标记点放置标准，每位参与者的下肢佩戴了19个反光标记物，用于追踪他们的下肢关节角运动轨迹。实验要求参与者保持静态坐姿，然后分别以快速、中等和缓慢三种速度完成站立-坐下动作，每种速度重复10次。其中参与者被要求在处于站立状态后和完成坐下后都保持1秒钟的静止，用于后期数据分割。为了保证计算的关节运动轨迹符合生物运动学特征，将由运动捕捉记录采集的光学标记点位置数据使用Opensim生物动力/运动学仿真软件计算参与者下肢三个关节在矢状面的关节角度变化曲线。
 
-\subsection{基于三自由度PDMP的坐立动作表征} 
+\subsection{基于三自由度PDMP的坐立动作模型表征} 
 上一节基于三连杆模型对人体完成坐立动作的过程进行了分析。在本小节中，通过简化的模型，使用PDMP模型对下肢踝关节、膝关节以及髋关节的运动轨迹进行了编码表征处理。其中，由于数据采集是连续进行的，因此需要对采集得到的轨迹进行分割处理。其中完成坐立运动过程的有效关节运动轨迹是通过计算髋关节$\theta_3$运动的一阶导数$\dot\theta_3$，并在$\dot\theta_3=0$处作为轨迹的分割点实现的。在进行轨迹分割后，仅使用由坐到站的轨迹用于构建先验知识库。为了避免数值积分问题，关节角轨迹使用各个关节的主动活动度参数进行归一化处理。关于关节角度轨迹$X$的归一化关节运动轨迹$X_{norm}$定义为：
 \begin{equation}
     X_{norm} = \frac{X-AROM_{min}}{AROM_{max}-AROM_{min}}
@@ -376,7 +383,7 @@
 \end{equation}
 其中$AROM_{min}$和$AROM_{max}$分别代表了下肢关节主动活动度的最小和最大值。设踝关节、膝关节、髋关节在坐立运动过程中的归一化轨迹分别为$X_{1,2,...,10}^{ankle}$、$X_{1,2,...,10}^{knee}$、$X_{1,2,...,10}^{hip}$，使用2.3.3节所述的DMP离线学习方法分别学习各个关节每段坐立运动轨迹，其中基函数的数量设置为$N=20$，起始点设置为归一化关节轨迹的第一个值$p_0=X_i(0)$，轨迹目标$g=[0,0,0]^T$。如图\ref{fig:4-3}所示，在离线阶段基于踝、膝、髋三个关节的归一化运动数据对不同运动速度下的坐立运动进行了建模表征，并将由模型产生的权重向量的均值作为运动先验知识存放在库中。在实验中，我们要求参与者分别按照慢速（完成STS动作约2.5秒）、中等速度（完成STS动作约5秒）、快速三种STS（完成STS动作约7.5秒）进行STS运动10次并采集数据。最终获得了30组有效的STS动作关节运动轨迹片段，构建了基于三种STS速度的PDMP运动先验知识库$\mathscr{L}$。
 
-为了保持同步，三个关节的轨迹由同一个相位变量$x$控制，包含了三个关节轨迹信息的三自由度PDMP的隐变量为$s_t=[z_1,z_2,z_3,p_1,p_2,p_3]^T$分别代表了各个关节独立的DMP隐变量。则系统状态转移矩阵为：
+为了保持同步，三个关节的轨迹由同一个相位变量$x$控制，包含了三个关节轨迹信息的三自由度PDMP的隐变量为$z_t=[z_1,z_2,z_3,p_1,p_2,p_3]^T$分别代表了各个关节独立的DMP隐变量。则系统状态转移矩阵为：
 \begin{equation}
     \mathbf{A}_1=\left(\begin{array}{llllll}
     1 & 0 & 0 & 0 & 0 & 0\\
