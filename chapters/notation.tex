@@ -3,12 +3,57 @@
 \begin{notation}
 
   \begin{notationlist}{2em}
-    \item[$\displaystyle a$] The number of angels per unit area
-    \item[$\displaystyle N$] The number of angels per needle point
-    \item[$\displaystyle A$] The area of the needle point
-    \item[$\displaystyle \sigma$] The total mass of angels per unit area
-    \item[$\displaystyle m$] The mass of one angel
-    \item[$\displaystyle \sum_{i=1}^n a_i$] The sum of $a_i$
+    \item[$\displaystyle J(·)$] 损失函数
+    \item[$\displaystyle M$] 用于表示交互动作的动力学模型
+    \item[$\displaystyle D$] 从外部环境采集获取的数据集合
+    \item[$\displaystyle \pi(·)$] 决策函数
+    \item[$\displaystyle Y$] 传感器观测量集合
+    \item[$\displaystyle S$] 外部环境状态集合
+    \item[$\displaystyle A$] 动作空间集合
+    \item[$\displaystyle \Phi$] 隐状态空间集合
+    \item[$\displaystyle y$] 传感器观测量变量
+    \item[$\displaystyle s$] 外部环境状态变量
+    \item[$\displaystyle a$] 人类或机器人执行的动作变量
+    \item[$\displaystyle u$] 交互或模型控制输入变量
+    \item[$\displaystyle g$] 目标状态变量
+    \item[$\displaystyle z$] 隐状态变量
+    \item[$\displaystyle o$] 观测变量
+    \item[$\displaystyle b$] 信念状态变量
+    \item[$\displaystyle T(·)$] 状态转移函数
+    \item[$\displaystyle m(·)$] 映射函数
+    \item[$\displaystyle R$] 奖励回报
+    \item[$\displaystyle h(·)$] 仲裁函数
+    \item[$\displaystyle \lambda$] 仲裁函数中的混合系数
+    \item[$\displaystyle \alpha$] 动态运动基元当中的刚度系数
+    \item[$\displaystyle \beta$] 动态运动基元当中的阻尼系数
+    \item[$\displaystyle p,q$] 动态运动基元当中的状态变量
+    \item[$\displaystyle \Psi(·)$] 动态运动基元中的基函数
+    \item[$\displaystyle w$] 动态运动基元中的基函数权重值
+    \item[$\displaystyle h$] 动态运动基元中的基函数宽度系数
+    \item[$\displaystyle c$] 动态运动基元中的基函数中心位置
+    \item[$\displaystyle r$] 动态运动基元中的幅值系数/感受野半径
+    \item[$\displaystyle \phi$] 节律动态运动基元相位变量
+    \item[$\displaystyle G$] 交互解码输出增益
+    \item[$\displaystyle C_z$] 基于规则的映射解码零点校准向量
+    \item[$\displaystyle C_a$] 基于规则的映射解码幅值校准向量
+    \item[$\displaystyle \boldsymbol{A}$] 状态转移矩阵
+    \item[$\displaystyle \boldsymbol{B}$] 输入矩阵
+    \item[$\displaystyle \boldsymbol{C}$] 观测矩阵
+    \item[$\displaystyle \boldsymbol{Q}$] 状态转移不确定性协方差矩阵
+    \item[$\displaystyle \boldsymbol{R}$] 观测不确定性协方差矩阵
+    \item[$\displaystyle \Delta t$] 积分时间步长
+    \item[$\displaystyle \tau$] 运动基元模型中交互动作持续时间参数
+    \item[$\displaystyle \mathscr{L}$] 技能库
+    \item[$\displaystyle l_{ave}$] 似然函数均值
+    \item[$\displaystyle \Theta$] 技能库中表征动作的参数组
+    \item[$\displaystyle k$] 技能库中表征动作的类别
+    \item[$\displaystyle f_{targ}$] 示教学习目标
+    \item[$\displaystyle \omega$] 步行速度变量
+    \item[$\displaystyle \mu$] 高斯分布均值
+    \item[$\displaystyle \Sigma$] 高斯分布协方差矩阵
+    \item[$\displaystyle \epsilon$] 耦合强度系数
+    \item[$\displaystyle Tr$] 阈值
+    
   \end{notationlist}
 
 \end{notation}
